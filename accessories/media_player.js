@@ -23,7 +23,6 @@ function HomeAssistantMediaPlayer(log, data, client) {
   this.domain = "media_player"
   this.data = data
   this.entity_id = data.entity_id
-  this.supportsVolume = false
   this.supportedMediaCommands = data.attributes.supported_media_commands
 
   if (data.attributes && data.attributes.friendly_name) {
@@ -44,10 +43,6 @@ function HomeAssistantMediaPlayer(log, data, client) {
     this.offService = "turn_off"
   }
 
-  if ((this.supportedMediaCommands | SUPPORT_VOLUME_SET) == this.supportedMediaCommands) {
-    this.supportsVolume = true
-  }
-
   this.client = client
   this.log = log;
 }
@@ -60,19 +55,6 @@ HomeAssistantMediaPlayer.prototype = {
       if (data) {
         powerState = data.state == this.onState
         callback(null, powerState)
-      }else{
-        callback(communicationError)
-      }
-    }.bind(this))
-  },
-  getVolume: function(callback){
-    this.log("fetching volume for: " + this.name);
-    that = this
-    this.client.fetchState(this.entity_id, function(data){
-      if (data && data.attributes) {
-        that.log(JSON.stringify(data.attributes))
-        level = data.attributes.volume_level ? data.attributes.volume_level*100 : 0
-        callback(null, level)
       }else{
         callback(communicationError)
       }
@@ -107,26 +89,8 @@ HomeAssistantMediaPlayer.prototype = {
       }.bind(this))
     }
   },
-  setVolume: function(level, callback) {
-    var that = this;
-    var service_data = {}
-    service_data.entity_id = this.entity_id
-
-    service_data.volume_level = level/100.0
-
-    this.log("Setting volume on the '"+this.name+"' to " + level);
-
-    this.client.callService(this.domain, 'volume_set', service_data, function(data){
-      if (data) {
-        that.log("Successfully set volume on the '"+that.name+"' to " + level);
-        callback()
-      }else{
-        callback(communicationError)
-      }
-    }.bind(this))
-  },
   getServices: function() {
-    var lightbulbService = new Service.Lightbulb();
+    var switchService = new Service.Switch();
     var informationService = new Service.AccessoryInformation();
 
     informationService
@@ -134,20 +98,12 @@ HomeAssistantMediaPlayer.prototype = {
       .setCharacteristic(Characteristic.Model, "Media Player")
       .setCharacteristic(Characteristic.SerialNumber, "xxx");
 
-    lightbulbService
+    switchService
       .getCharacteristic(Characteristic.On)
       .on('get', this.getPowerState.bind(this))
       .on('set', this.setPowerState.bind(this));
 
-
-    if (this.supportsVolume) {
-      lightbulbService
-        .addCharacteristic(Characteristic.Brightness)
-        .on('get', this.getVolume.bind(this))
-        .on('set', this.setVolume.bind(this));
-    }
-
-    return [informationService, lightbulbService];
+    return [informationService, switchService];
   }
 
 }
