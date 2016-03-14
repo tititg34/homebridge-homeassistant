@@ -1,8 +1,9 @@
-var Service, Characteristic;
+var Service, Characteristic, communicationError;
 
-module.exports = function (oService, oCharacteristic) {
+module.exports = function (oService, oCharacteristic, oCommunicationError) {
   Service = oService;
   Characteristic = oCharacteristic;
+  communicationError = oCommunicationError;
 
   return HomeAssistantMediaPlayer;
 };

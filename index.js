@@ -16,9 +16,9 @@ module.exports = function(homebridge) {
   Characteristic = homebridge.hap.Characteristic;
   Accessory = homebridge.platformAccessory;
 
-  HomeAssistantLight = require('./accessories/light')(Service, Characteristic);
-  HomeAssistantSwitch = require('./accessories/switch')(Service, Characteristic);
-  HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic);
+  HomeAssistantLight = require('./accessories/light')(Service, Characteristic, communicationError);
+  HomeAssistantSwitch = require('./accessories/switch')(Service, Characteristic, communicationError);
+  HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic, communicationError);
 
   homebridge.registerPlatform("homebridge-homeassistant", "HomeAssistant", HomeAssistantPlatform, false);
 }
