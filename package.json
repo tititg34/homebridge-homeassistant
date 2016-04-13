@@ -1,6 +1,6 @@
 {
   "name": "homebridge-homeassistant",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Homebridge plugin for Home Assistant: https://home-assistant.io",
   "license": "MIT",
   "keywords": [
@@ -16,10 +16,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/maddox/homebridge-homeassistant.git"
+    "url": "git://github.com/home-assistant/homebridge-homeassistant.git"
   },
   "bugs": {
-    "url": "http://github.com/maddox/homebridge-homeassistant/issues"
+    "url": "http://github.com/home-assistant/homebridge-homeassistant/issues"
   },
   "engines": {
     "node": ">=0.12.0",
