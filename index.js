@@ -7,6 +7,7 @@ var communicationError = new Error('Can not communicate with Home Assistant.')
 var HomeAssistantLight;
 var HomeAssistantSwitch;
 var HomeAssistantLock;
+var HomeAssistantGarageDoor;
 var HomeAssistantMediaPlayer;
 
 
@@ -20,6 +21,7 @@ module.exports = function(homebridge) {
   HomeAssistantLight = require('./accessories/light')(Service, Characteristic, communicationError);
   HomeAssistantSwitch = require('./accessories/switch')(Service, Characteristic, communicationError);
   HomeAssistantLock = require('./accessories/lock')(Service, Characteristic, communicationError);
+  HomeAssistantGarageDoor = require('./accessories/garage_door')(Service, Characteristic, communicationError);
   HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic, communicationError);
 
   homebridge.registerPlatform("homebridge-homeassistant", "HomeAssistant", HomeAssistantPlatform, false);
@@ -136,6 +138,8 @@ HomeAssistantPlatform.prototype = {
           accessory = new HomeAssistantSwitch(that.log, entity, that)
         }else if (entity_type == 'lock'){
           accessory = new HomeAssistantLock(that.log, entity, that)
+        }else if (entity_type == 'garage_door'){
+          accessory = new HomeAssistantGarageDoor(that.log, entity, that)
         }else if (entity_type == 'scene'){
           accessory = new HomeAssistantSwitch(that.log, entity, that, 'scene')
         }else if (entity_type == 'media_player' && entity.attributes && entity.attributes.supported_media_commands){
