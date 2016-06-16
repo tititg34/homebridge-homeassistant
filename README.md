@@ -22,6 +22,8 @@ Here's a list of the devices that are currently exposed:
 * **Switches** - on/off
 * **Scenes** - exposed as an on/off switch
 * **Media Players** - exposed as an on/off switch
+* **Lock** - lock/unlock lock
+* **Garage Door** - open/close garage door
 
 ### Scene Support
 
