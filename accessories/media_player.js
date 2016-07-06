@@ -19,6 +19,7 @@ function HomeAssistantMediaPlayer(log, data, client) {
   var SUPPORT_YOUTUBE = 64
   var SUPPORT_TURN_ON = 128
   var SUPPORT_TURN_OFF = 256
+  var SUPPORT_STOP = 4096
 
   // device info
   this.domain = "media_player"
@@ -32,7 +33,12 @@ function HomeAssistantMediaPlayer(log, data, client) {
     this.name = data.entity_id.split('.').pop().replace(/_/g, ' ')
   }
 
-  if ((this.supportedMediaCommands | SUPPORT_PAUSE) == this.supportedMediaCommands) {
+  if ((this.supportedMediaCommands | SUPPORT_STOP) == this.supportedMediaCommands) {
+    this.onState = "playing"
+    this.offState = "idle"
+    this.onService = "media_play"
+    this.offService = "media_stop"
+  }else if ((this.supportedMediaCommands | SUPPORT_PAUSE) == this.supportedMediaCommands) {
     this.onState = "playing"
     this.offState = "paused"
     this.onService = "media_play"
