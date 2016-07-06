@@ -33,7 +33,12 @@ function HomeAssistantMediaPlayer(log, data, client) {
     this.name = data.entity_id.split('.').pop().replace(/_/g, ' ')
   }
 
-  if ((this.supportedMediaCommands | SUPPORT_PAUSE) == this.supportedMediaCommands) {
+  if ((this.supportedMediaCommands | SUPPORT_STOP) == this.supportedMediaCommands) {
+    this.onState = "playing"
+    this.offState = "idle"
+    this.onService = "media_play"
+    this.offService = "media_stop"
+  }else if ((this.supportedMediaCommands | SUPPORT_PAUSE) == this.supportedMediaCommands) {
     this.onState = "playing"
     this.offState = "paused"
     this.onService = "media_play"
@@ -43,11 +48,6 @@ function HomeAssistantMediaPlayer(log, data, client) {
     this.offState = "off"
     this.onService = "turn_on"
     this.offService = "turn_off"
-  }else if ((this.supportedMediaCommands | SUPPORT_STOP) == this.supportedMediaCommands) {
-    this.onState = "playing"
-    this.offState = "idle"
-    this.onService = "media_play"
-    this.offService = "media_stop"
   }
 
   this.client = client
