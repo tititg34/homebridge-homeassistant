@@ -125,10 +125,12 @@ HomeAssistantLight.prototype = {
       .on('get', this.getPowerState.bind(this))
       .on('set', this.setPowerState.bind(this));
 
-    lightbulbService
-      .addCharacteristic(Characteristic.Brightness)
-      .on('get', this.getBrightness.bind(this))
-      .on('set', this.setBrightness.bind(this));
+    if (this.data.attributes.brightness !== undefined) {
+      lightbulbService
+        .addCharacteristic(Characteristic.Brightness)
+        .on('get', this.getBrightness.bind(this))
+        .on('set', this.setBrightness.bind(this));
+    }
 
     return [informationService, lightbulbService];
   }
