@@ -70,6 +70,16 @@ adding it to your `config.json`.
 
 You can optionally whitelist the device types that are exposed to HomeKit with the `supported_types` array. Just remove a device type that you don't want and they will be ignored.
 
+## Customization
+
+If there's an entity you'd like to hide from Homebridge, you can do that by adding a `homebridge_hidden` tag and setting it to `true`; e.g.:
+
+```yaml
+customize:
+  switch.a_switch:
+    homebridge_hidden: true
+```
+
 ## Contributions
 
 * fork
