@@ -126,6 +126,11 @@ HomeAssistantPlatform.prototype = {
           continue;
         }
 
+        // ignore homebridge hidden devices
+        if (entity.attributes && entity.attributes.homebridge_hidden) {
+          continue;
+        }
+
         var accessory = null
 
         if (entity_type == 'light') {
