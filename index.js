@@ -108,7 +108,11 @@ HomeAssistantPlatform.prototype = {
     var foundAccessories = [];
 
     this._request('GET', '/states', {}, function(error, response, data){
-      that.log(error)
+      if (error) {
+        that.log("Failed getting devices: " + error + ". Retrying...");
+        setTimeout(function() { that.accessories(callback); }, 5000);
+        return;
+      }
       // that.log(response)
       that.log(data)
 
