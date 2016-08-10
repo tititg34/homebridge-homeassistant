@@ -22,6 +22,7 @@ Here's a list of the devices that are currently exposed:
 * **Switches** - on/off
 * **Scenes** - exposed as an on/off switch
 * **Media Players** - exposed as an on/off switch
+* **Rollershutters** - open/close rollershutters
 
 ### Scene Support
 
