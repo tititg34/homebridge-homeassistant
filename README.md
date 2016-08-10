@@ -72,7 +72,7 @@ You can optionally whitelist the device types that are exposed to HomeKit with t
 
 ## Customization
 
-If there's an entity you'd like to hide from Homebridge, you can do that by adding a `homebridge_hidden` tag and setting it to `true`; e.g.:
+If there's an entity you'd like to hide from Homebridge, you can do that by adding a `homebridge_hidden` tag and setting it to `true` in your Home Assistant customization configuration. Again, this is set on the Home Assistant side. e.g.:
 
 ```yaml
 customize:
