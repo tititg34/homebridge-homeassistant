@@ -25,6 +25,20 @@ function HomeAssistantLight(log, data, client) {
 }
 
 HomeAssistantLight.prototype = {
+  features: Object.freeze({
+    BRIGHTNESS: 1,
+    COLOR_TEMP: 2,
+    EFFECT: 4,
+    FLASH: 8,
+    RGB_COLOR: 16,
+    TRANSITION: 32,
+    XY_COLOR: 64,
+  }),
+  is_supported: function(feature) {
+    // If the supported_features attribute doesn't exist, assume supported
+    return this.data.attributes.supported_features === undefined ||
+      ((this.data.attributes.supported_features & feature) > 0)
+  },
   identify: function(callback){
     this.log("identifying: " + this.name);
 
@@ -125,10 +139,12 @@ HomeAssistantLight.prototype = {
       .on('get', this.getPowerState.bind(this))
       .on('set', this.setPowerState.bind(this));
 
-    lightbulbService
-      .addCharacteristic(Characteristic.Brightness)
-      .on('get', this.getBrightness.bind(this))
-      .on('set', this.setBrightness.bind(this));
+    if (this.is_supported(this.features.BRIGHTNESS)) {
+      lightbulbService
+        .addCharacteristic(Characteristic.Brightness)
+        .on('get', this.getBrightness.bind(this))
+        .on('set', this.setBrightness.bind(this));
+    }
 
     return [informationService, lightbulbService];
   }
