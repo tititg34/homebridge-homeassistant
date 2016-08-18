@@ -23,8 +23,8 @@ module.exports = function(homebridge) {
   HomeAssistantSwitch = require('./accessories/switch')(Service, Characteristic, communicationError);
   HomeAssistantLock = require('./accessories/lock')(Service, Characteristic, communicationError);
   HomeAssistantGarageDoor = require('./accessories/garage_door')(Service, Characteristic, communicationError);
-  HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic, communicationError);
   HomeAssistantRollershutter = require('./accessories/rollershutter')(Service, Characteristic, communicationError);
+  HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic, communicationError);
 
   homebridge.registerPlatform("homebridge-homeassistant", "HomeAssistant", HomeAssistantPlatform, false);
 }

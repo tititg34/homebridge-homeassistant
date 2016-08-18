@@ -9,7 +9,7 @@ module.exports = function (oService, oCharacteristic, oCommunicationError) {
 };
 module.exports.HomeAssistantRollershutter = HomeAssistantRollershutter;
 
-function HomeAssistantRollershutter(log, data, client, type) {
+function HomeAssistantRollershutter(log, data, client) {
   // device info
   this.domain = "rollershutter"
   this.data = data
@@ -25,95 +25,78 @@ function HomeAssistantRollershutter(log, data, client, type) {
 }
 
 HomeAssistantRollershutter.prototype = {
+  getOpenState: function(callback){
+    this.client.fetchState(this.entity_id, function(data){
+      if (data && data.attributes) {
 
-  getCurrentPosition: function(callback){
-    this.client.fetchState(this.entity_id, function(data){
-      if (data && data.attributes) {
-        currentPosition = data.attributes.current_position
-        callback(null, currentPosition)
-      } else {
+        // if rollershutter state == 'open' then the door is closed ie you can't walk through it
+        // rollershutter "closed" means the rollershutter itself is closed (rolled up), so the door is open
+        // see discussion at https://github.com/home-assistant/home-assistant-polymer/pull/54
+
+        // HomeKit door states: 0 is open, 1 is closed
+        // https://github.com/KhaosT/HAP-NodeJS/blob/621d188bc9799c631d763c75aafdd7f4a7ee8ba3/lib/gen/HomeKitTypes.js#L443
+        if (data.attributes.current_position == 100) {
+            // Rollershutter is fully unrolled / doorway or window is closed
+            openState = 1
+        } else {
+            // Consider doorway open if rollershutter is not fully open
+            openState = 0
+        }
+        callback(null, openState)
+      }else{
         callback(communicationError)
       }
     }.bind(this))
   },
-  getTargetPosition: function(callback){
-    // HA doesn't provide targePosition yet so just reporting the currentPosition instead
-    this.client.fetchState(this.entity_id, function(data){
-      if (data && data.attributes) {
-        targetPosition = data.attributes.current_position
-        callback(null, targetPosition)
-      } else {
-        callback(communicationError)
-      }
-    }.bind(this))
-  },
-  getPositionState: function(callback){
-    // HA also doesn't support increasing or decreasing state so we always have to pretend the shutters are already at there targetPosition and stopped
-    /*this.client.fetchState(this.entity_id, function(data){
-      if (data) {
-        positionState = 2
-        callback(null, positionState)
-      } else {
-        callback(communicationError)
-      }
-    }.bind(this))*/
-    positionState = 2;
-    callback(null, positionState)
-  },
-  setTargetPosition: function(position, callback){
-    // Seems like HA also doesn't support setting a specific position so just setting to open for values <50 and closed for >=50
+  setOpenState: function(rollershutterCommand, callback) {
     var that = this;
     var service_data = {}
-
     service_data.entity_id = this.entity_id
-    
-    if (position < 50) {
-      this.log("Setting'"+this.name+"' open");
+
+    // Open is 0 / false
+    if (!rollershutterCommand) {
+      this.log("Setting the state of the '"+this.name+"' to open");
+
       this.client.callService(this.domain, 'move_up', service_data, function(data){
-      if (data) {
-        that.log("Successfully opened '"+that.name+"'");
-        callback()
-      }else{
-        callback(communicationError)
-      }
+        if (data) {
+          that.log("Successfully set state of '"+that.name+"' to open");
+          callback()
+        }else{
+          callback(communicationError)
+        }
       }.bind(this))
-    } else {
-      this.log("Setting '"+this.name+"' closed");
+    }else{
+      this.log("Setting the state of the '"+this.name+"' to closed");
+
       this.client.callService(this.domain, 'move_down', service_data, function(data){
-      if (data) {
-        that.log("Successfully closed '"+that.name+"'");
-        callback()
-      }else{
-        callback(communicationError)
-      }
+        if (data) {
+          that.log("Successfully set state of '"+that.name+"' to closed");
+          callback()
+        }else{
+          callback(communicationError)
+        }
       }.bind(this))
     }
   },
   getServices: function() {
-    var shutterService = new Service.WindowCovering();
+    var rollershutterService = new Service.GarageDoorOpener();
     var informationService = new Service.AccessoryInformation();
     var model;
-    
-    model = "WindowCovering"
-    
+
     informationService
       .setCharacteristic(Characteristic.Manufacturer, "Home Assistant")
-      .setCharacteristic(Characteristic.Model, model)
+      .setCharacteristic(Characteristic.Model, "Rollershutter")
       .setCharacteristic(Characteristic.SerialNumber, "xxx");
 
-    shutterService
-      .getCharacteristic(Characteristic.CurrentPosition)
-      .on('get', this.getCurrentPosition.bind(this))
+    rollershutterService
+      .getCharacteristic(Characteristic.CurrentDoorState)
+      .on('get', this.getOpenState.bind(this));
 
-    shutterService
-      .getCharacteristic(Characteristic.TargetPosition)
-      .on('get', this.getTargetPosition.bind(this))
-      .on('set', this.setTargetPosition.bind(this))
-      
-    shutterService
-      .getCharacteristic(Characteristic.PositionState)
-      .on('get', this.getPositionState.bind(this))
+    rollershutterService
+      .getCharacteristic(Characteristic.TargetDoorState)
+      .on('get', this.getOpenState.bind(this))
+      .on('set', this.setOpenState.bind(this));
 
-    return [informationService, shutterService];
+    return [informationService, rollershutterService];
   }
 }
