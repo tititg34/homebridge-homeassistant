@@ -83,6 +83,14 @@ customize:
     homebridge_hidden: true
 ```
 
+You can also customize the name of a device by setting `homebridge_name` like this:
+
+```yaml
+customize:
+  switch.a_switch:
+    homebridge_name: My awesome switch
+```
+
 ## Contributions
 
 * fork
