@@ -141,6 +141,11 @@ HomeAssistantPlatform.prototype = {
           continue;
         }
 
+        // support providing custom names
+        if (entity.attributes && entity.attributes.homebridge_name) {
+          entity.attributes.friendly_name = entity.attributes.homebridge_name;
+        }
+
         var accessory = null
 
         if (entity_type == 'light') {
