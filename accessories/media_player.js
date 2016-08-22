@@ -55,6 +55,13 @@ function HomeAssistantMediaPlayer(log, data, client) {
 }
 
 HomeAssistantMediaPlayer.prototype = {
+  onEvent: function(old_state, new_state) {
+    if (old_state.state == new_state.state)
+      return;
+
+    this.switchService.getCharacteristic(Characteristic.On)
+      .setValue(new_state.state == this.onState, null, 'internal');
+  },
   getPowerState: function(callback){
     this.log("fetching power state for: " + this.name);
 
@@ -67,7 +74,12 @@ HomeAssistantMediaPlayer.prototype = {
       }
     }.bind(this))
   },
-  setPowerState: function(powerOn, callback) {
+  setPowerState: function(powerOn, callback, context) {
+    if (context == 'internal') {
+      callback();
+      return;
+    }
+
     var that = this;
     var service_data = {}
     service_data.entity_id = this.entity_id
@@ -97,7 +109,7 @@ HomeAssistantMediaPlayer.prototype = {
     }
   },
   getServices: function() {
-    var switchService = new Service.Switch();
+    this.switchService = new Service.Switch();
     var informationService = new Service.AccessoryInformation();
 
     informationService
@@ -105,12 +117,12 @@ HomeAssistantMediaPlayer.prototype = {
       .setCharacteristic(Characteristic.Model, "Media Player")
       .setCharacteristic(Characteristic.SerialNumber, "xxx");
 
-    switchService
+    this.switchService
       .getCharacteristic(Characteristic.On)
       .on('get', this.getPowerState.bind(this))
       .on('set', this.setPowerState.bind(this));
 
-    return [informationService, switchService];
+    return [informationService, this.switchService];
   }
 
 }

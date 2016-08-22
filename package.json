@@ -26,6 +26,7 @@
     "homebridge": ">=0.3.0"
   },
   "dependencies": {
+    "eventsource": "^0.2.1",
     "request": "^2.69.0"
   }
 }

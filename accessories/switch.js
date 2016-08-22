@@ -25,6 +25,13 @@ function HomeAssistantSwitch(log, data, client, type) {
 }
 
 HomeAssistantSwitch.prototype = {
+  onEvent: function(old_state, new_state) {
+    if (old_state.state == new_state.state)
+      return;
+
+    this.switchService.getCharacteristic(Characteristic.On)
+      .setValue(new_state.state == 'on', null, 'internal');
+  },
   getPowerState: function(callback){
     this.client.fetchState(this.entity_id, function(data){
       if (data) {
@@ -35,7 +42,12 @@ HomeAssistantSwitch.prototype = {
       }
     }.bind(this))
   },
-  setPowerState: function(powerOn, callback) {
+  setPowerState: function(powerOn, callback, context) {
+    if (context == 'internal') {
+      callback();
+      return;
+    }
+
     var that = this;
     var service_data = {}
     service_data.entity_id = this.entity_id
@@ -65,7 +77,7 @@ HomeAssistantSwitch.prototype = {
     }
   },
   getServices: function() {
-    var switchService = new Service.Switch();
+    this.switchService = new Service.Switch();
     var informationService = new Service.AccessoryInformation();
     var model;
 
@@ -83,18 +95,18 @@ HomeAssistantSwitch.prototype = {
       .setCharacteristic(Characteristic.SerialNumber, "xxx");
 
     if (this.domain == 'switch') {
-      switchService
+      this.switchService
         .getCharacteristic(Characteristic.On)
         .on('get', this.getPowerState.bind(this))
         .on('set', this.setPowerState.bind(this));
 
     }else{
-      switchService
+      this.switchService
         .getCharacteristic(Characteristic.On)
         .on('set', this.setPowerState.bind(this));
     }
 
-    return [informationService, switchService];
+    return [informationService, this.switchService];
   }
 
 }

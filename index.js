@@ -1,6 +1,7 @@
 var Accessory, Service, Characteristic;
 var url = require('url')
 var request = require("request");
+var EventSource = require('eventsource');
 
 var communicationError = new Error('Can not communicate with Home Assistant.')
 
@@ -35,6 +36,7 @@ function HomeAssistantPlatform(log, config, api){
   this.host = config.host;
   this.password = config.password;
   this.supportedTypes = config.supported_types;
+  this.foundAccessories = [];
 
   this.log = log;
 
@@ -49,6 +51,24 @@ function HomeAssistantPlatform(log, config, api){
       console.log("Plugin - DidFinishLaunching");
     }.bind(this));
   }
+
+  var es = new EventSource(config.host + '/api/stream?api_password=' + encodeURIComponent(this.password));
+  es.addEventListener('message', function(e) {
+    if (e.data == 'ping')
+      return;
+
+    var data = JSON.parse(e.data);
+    if (data.event_type != 'state_changed')
+      return;
+
+    var numAccessories = this.foundAccessories.length;
+    for (var i = 0; i < numAccessories; i++) {
+      var accessory = this.foundAccessories[i];
+
+      if (accessory.entity_id == data.data.entity_id && accessory.onEvent)
+        accessory.onEvent(data.data.old_state, data.data.new_state);
+    }
+  }.bind(this));
 }
 
 HomeAssistantPlatform.prototype = {
@@ -111,7 +131,6 @@ HomeAssistantPlatform.prototype = {
     this.log("Fetching HomeAssistant devices.");
 
     var that = this;
-    var foundAccessories = [];
 
     this._request('GET', '/states', {}, function(error, response, data){
       if (error) {
@@ -165,11 +184,11 @@ HomeAssistantPlatform.prototype = {
         }
 
         if (accessory) {
-          foundAccessories.push(accessory)
+          that.foundAccessories.push(accessory)
         }
       }
 
-      callback(foundAccessories)
+      callback(that.foundAccessories)
     })
 
   }

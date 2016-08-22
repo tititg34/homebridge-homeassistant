@@ -25,6 +25,16 @@ function HomeAssistantGarageDoor(log, data, client, type) {
 }
 
 HomeAssistantGarageDoor.prototype = {
+  onEvent: function(old_state, new_state) {
+    if (old_state.state == new_state.state)
+      return;
+
+    var garageState = new_state.state == 'open' ? 0 : 1;
+    this.garageService.getCharacteristic(Characteristic.CurrentDoorState)
+        .setValue(garageState, null, 'internal');
+    this.garageService.getCharacteristic(Characteristic.TargetDoorState)
+        .setValue(garageState, null, 'internal');
+  },
   getGarageDoorState: function(callback){
     this.client.fetchState(this.entity_id, function(data){
       if (data) {
@@ -35,7 +45,12 @@ HomeAssistantGarageDoor.prototype = {
       }
     }.bind(this))
   },
-  setGarageDoorState: function(garageOn, callback) {
+  setGarageDoorState: function(garageOn, callback, context) {
+    if (context == 'internal') {
+      callback();
+      return;
+    }
+
     var that = this;
     var service_data = {}
     service_data.entity_id = this.entity_id
@@ -65,7 +80,7 @@ HomeAssistantGarageDoor.prototype = {
     }
   },
   getServices: function() {
-    var garageService = new Service.GarageDoorOpener();
+    this.garageService = new Service.GarageDoorOpener();
     var informationService = new Service.AccessoryInformation();
 
     informationService
@@ -73,16 +88,16 @@ HomeAssistantGarageDoor.prototype = {
       .setCharacteristic(Characteristic.Model, "Garage Door")
       .setCharacteristic(Characteristic.SerialNumber, "xxx");
 
-      garageService
+      this.garageService
         .getCharacteristic(Characteristic.CurrentDoorState)
         .on('get', this.getGarageDoorState.bind(this));
         
-      garageService
+      this.garageService
         .getCharacteristic(Characteristic.TargetDoorState)
         .on('get', this.getGarageDoorState.bind(this))
         .on('set', this.setGarageDoorState.bind(this));
 
-    return [informationService, garageService];
+    return [informationService, this.garageService];
   }
 
 }
