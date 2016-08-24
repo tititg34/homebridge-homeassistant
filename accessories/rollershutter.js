@@ -25,6 +25,17 @@ function HomeAssistantRollershutter(log, data, client) {
 }
 
 HomeAssistantRollershutter.prototype = {
+  onEvent: function(old_state, new_state) {
+    if (old_state.attributes.current_position == new_state.attributes.current_position)
+      return;
+
+    /* See getOpenState() for details on these values */
+    var state = new_state.attributes.current_position == 100 ? 1 : 0;
+    this.rollershutterService.getCharacteristic(Characteristic.CurrentDoorState)
+      .setValue(state, null, 'internal');
+    this.rollershutterService.getCharacteristic(Characteristic.TargetDoorState)
+      .setValue(state, null, 'internal');
+  },
   getOpenState: function(callback){
     this.client.fetchState(this.entity_id, function(data){
       if (data && data.attributes) {
@@ -48,7 +59,12 @@ HomeAssistantRollershutter.prototype = {
       }
     }.bind(this))
   },
-  setOpenState: function(rollershutterCommand, callback) {
+  setOpenState: function(rollershutterCommand, callback, context) {
+    if (context == 'internal') {
+      callback();
+      return;
+    }
+
     var that = this;
     var service_data = {}
     service_data.entity_id = this.entity_id
@@ -79,7 +95,7 @@ HomeAssistantRollershutter.prototype = {
     }
   },
   getServices: function() {
-    var rollershutterService = new Service.GarageDoorOpener();
+    this.rollershutterService = new Service.GarageDoorOpener();
     var informationService = new Service.AccessoryInformation();
     var model;
 
@@ -88,15 +104,15 @@ HomeAssistantRollershutter.prototype = {
       .setCharacteristic(Characteristic.Model, "Rollershutter")
       .setCharacteristic(Characteristic.SerialNumber, "xxx");
 
-    rollershutterService
+    this.rollershutterService
       .getCharacteristic(Characteristic.CurrentDoorState)
       .on('get', this.getOpenState.bind(this));
 
-    rollershutterService
+    this.rollershutterService
       .getCharacteristic(Characteristic.TargetDoorState)
       .on('get', this.getOpenState.bind(this))
       .on('set', this.setOpenState.bind(this));
 
-    return [informationService, rollershutterService];
+    return [informationService, this.rollershutterService];
   }
 }

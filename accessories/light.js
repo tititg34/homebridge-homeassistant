@@ -39,6 +39,18 @@ HomeAssistantLight.prototype = {
     return this.data.attributes.supported_features === undefined ||
       ((this.data.attributes.supported_features & feature) > 0)
   },
+  onEvent: function(old_state, new_state) {
+    if (old_state.state != new_state.state) {
+      this.lightbulbService.getCharacteristic(Characteristic.On)
+        .setValue(new_state.state == 'on', null, 'internal');
+    }
+    if (this.is_supported(this.features.BRIGHTNESS) &&
+      old_state.attributes.brightness != new_state.attributes.brightness) {
+      var brightness = Math.round(((new_state.attributes.brightness || 0) / 255) * 100);
+      this.lightbulbService.getCharacteristic(Characteristic.Brightness)
+        .setValue(brightness, null, 'internal');
+    }
+  },
   identify: function(callback){
     this.log("identifying: " + this.name);
 
@@ -78,7 +90,12 @@ HomeAssistantLight.prototype = {
       }
     }.bind(this))
   },
-  setPowerState: function(powerOn, callback) {
+  setPowerState: function(powerOn, callback, context) {
+    if (context == 'internal') {
+      callback();
+      return;
+    }
+
     var that = this;
     var service_data = {}
     service_data.entity_id = this.entity_id
@@ -107,7 +124,12 @@ HomeAssistantLight.prototype = {
       }.bind(this))
     }
   },
-  setBrightness: function(level, callback) {
+  setBrightness: function(level, callback, context) {
+    if (context === 'internal') {
+      callback();
+      return;
+    }
+
     var that = this;
     var service_data = {}
     service_data.entity_id = this.entity_id
@@ -126,7 +148,7 @@ HomeAssistantLight.prototype = {
     }.bind(this))
   },
   getServices: function() {
-    var lightbulbService = new Service.Lightbulb();
+    this.lightbulbService = new Service.Lightbulb();
     var informationService = new Service.AccessoryInformation();
 
     informationService
@@ -134,19 +156,19 @@ HomeAssistantLight.prototype = {
       .setCharacteristic(Characteristic.Model, "Light")
       .setCharacteristic(Characteristic.SerialNumber, "xxx");
 
-    lightbulbService
+    this.lightbulbService
       .getCharacteristic(Characteristic.On)
       .on('get', this.getPowerState.bind(this))
       .on('set', this.setPowerState.bind(this));
 
     if (this.is_supported(this.features.BRIGHTNESS)) {
-      lightbulbService
+      this.lightbulbService
         .addCharacteristic(Characteristic.Brightness)
         .on('get', this.getBrightness.bind(this))
         .on('set', this.setBrightness.bind(this));
     }
 
-    return [informationService, lightbulbService];
+    return [informationService, this.lightbulbService];
   }
 
 }

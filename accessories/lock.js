@@ -25,6 +25,16 @@ function HomeAssistantLock(log, data, client, type) {
 }
 
 HomeAssistantLock.prototype = {
+  onEvent: function(old_state, new_state) {
+    if (old_state.state == new_state.state)
+      return;
+
+    var lockState = new_state.state == 'unlocked' ? 0 : 1;
+    this.lockService.getCharacteristic(Characteristic.LockCurrentState)
+      .setValue(lockState, null, 'internal');
+    this.lockService.getCharacteristic(Characteristic.LockTargetState)
+      .setValue(lockState, null, 'internal');
+  },
   getLockState: function(callback){
     this.client.fetchState(this.entity_id, function(data){
       if (data) {
@@ -35,7 +45,12 @@ HomeAssistantLock.prototype = {
       }
     }.bind(this))
   },
-  setLockState: function(lockOn, callback) {
+  setLockState: function(lockOn, callback, context) {
+    if (context == 'internal') {
+      callback();
+      return;
+    }
+
     var that = this;
     var service_data = {}
     service_data.entity_id = this.entity_id
@@ -65,7 +80,7 @@ HomeAssistantLock.prototype = {
     }
   },
   getServices: function() {
-    var lockService = new Service.LockMechanism();
+    this.lockService = new Service.LockMechanism();
     var informationService = new Service.AccessoryInformation();
 
     informationService
@@ -73,16 +88,16 @@ HomeAssistantLock.prototype = {
       .setCharacteristic(Characteristic.Model, "Lock")
       .setCharacteristic(Characteristic.SerialNumber, "xxx");
 
-      lockService
+      this.lockService
         .getCharacteristic(Characteristic.LockCurrentState)
         .on('get', this.getLockState.bind(this));
         
-      lockService
+      this.lockService
         .getCharacteristic(Characteristic.LockTargetState)
         .on('get', this.getLockState.bind(this))
         .on('set', this.setLockState.bind(this));
 
-    return [informationService, lockService];
+    return [informationService, this.lockService];
   }
 
 }
