@@ -56,9 +56,6 @@ function HomeAssistantMediaPlayer(log, data, client) {
 
 HomeAssistantMediaPlayer.prototype = {
   onEvent: function(old_state, new_state) {
-    if (old_state.state == new_state.state)
-      return;
-
     this.switchService.getCharacteristic(Characteristic.On)
       .setValue(new_state.state == this.onState, null, 'internal');
   },

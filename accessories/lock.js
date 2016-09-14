@@ -26,9 +26,6 @@ function HomeAssistantLock(log, data, client, type) {
 
 HomeAssistantLock.prototype = {
   onEvent: function(old_state, new_state) {
-    if (old_state.state == new_state.state)
-      return;
-
     var lockState = new_state.state == 'unlocked' ? 0 : 1;
     this.lockService.getCharacteristic(Characteristic.LockCurrentState)
       .setValue(lockState, null, 'internal');
