@@ -26,9 +26,6 @@ function HomeAssistantRollershutter(log, data, client) {
 
 HomeAssistantRollershutter.prototype = {
   onEvent: function(old_state, new_state) {
-    if (old_state.attributes.current_position == new_state.attributes.current_position)
-      return;
-
     /* See getOpenState() for details on these values */
     var state = new_state.attributes.current_position == 100 ? 1 : 0;
     this.rollershutterService.getCharacteristic(Characteristic.CurrentDoorState)

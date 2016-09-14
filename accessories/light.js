@@ -40,12 +40,9 @@ HomeAssistantLight.prototype = {
       ((this.data.attributes.supported_features & feature) > 0)
   },
   onEvent: function(old_state, new_state) {
-    if (old_state.state != new_state.state) {
-      this.lightbulbService.getCharacteristic(Characteristic.On)
-        .setValue(new_state.state == 'on', null, 'internal');
-    }
-    if (this.is_supported(this.features.BRIGHTNESS) &&
-      old_state.attributes.brightness != new_state.attributes.brightness) {
+    this.lightbulbService.getCharacteristic(Characteristic.On)
+      .setValue(new_state.state == 'on', null, 'internal');
+    if (this.is_supported(this.features.BRIGHTNESS)) {
       var brightness = Math.round(((new_state.attributes.brightness || 0) / 255) * 100);
       this.lightbulbService.getCharacteristic(Characteristic.Brightness)
         .setValue(brightness, null, 'internal');

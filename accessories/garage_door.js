@@ -26,9 +26,6 @@ function HomeAssistantGarageDoor(log, data, client, type) {
 
 HomeAssistantGarageDoor.prototype = {
   onEvent: function(old_state, new_state) {
-    if (old_state.state == new_state.state)
-      return;
-
     var garageState = new_state.state == 'open' ? 0 : 1;
     this.garageService.getCharacteristic(Characteristic.CurrentDoorState)
         .setValue(garageState, null, 'internal');

@@ -26,9 +26,6 @@ function HomeAssistantSwitch(log, data, client, type) {
 
 HomeAssistantSwitch.prototype = {
   onEvent: function(old_state, new_state) {
-    if (old_state.state == new_state.state)
-      return;
-
     this.switchService.getCharacteristic(Characteristic.On)
       .setValue(new_state.state == 'on', null, 'internal');
   },
