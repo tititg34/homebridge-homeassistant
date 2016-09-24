@@ -68,7 +68,7 @@ adding it to your `config.json`.
     "name": "HomeAssistant",
     "host": "http://192.168.1.16:8123",
     "password": "yourapipassword",
-    "supported_types": ["light", "switch", "media_player", "scene", "rollershutter"]
+    "supported_types": ["fan", "garage_door", "input_boolean", "light", "lock", "media_player", "rollershutter", "scene", "switch]
   }
 ]
 ```
