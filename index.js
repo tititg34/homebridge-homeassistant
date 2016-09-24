@@ -140,7 +140,7 @@ HomeAssistantPlatform.prototype = {
         return;
       }
       // that.log(response)
-      that.log(data)
+      // that.log(data)
 
       for (var i = 0; i < data.length; i++) {
         entity = data[i]
