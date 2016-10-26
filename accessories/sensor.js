@@ -1,3 +1,4 @@
+"use strict";
 var Service, Characteristic, communicationError;
 
 module.exports = function (oService, oCharacteristic, oCommunicationError) {
@@ -50,9 +51,9 @@ class HomeAssistantSensor {
     }else{
       this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
     }
-  
+
     this.entity_type = data.entity_id.split('.')[0];
-  
+
     this.client = client;
     this.log = log;
 
@@ -84,7 +85,7 @@ class HomeAssistantSensor {
         callback(null, this.transformData(data));
       }else{
         callback(communicationError);
-      } 
+      }
     }.bind(this));
   }
 

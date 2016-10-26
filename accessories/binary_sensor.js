@@ -1,3 +1,4 @@
+"use strict";
 var Service, Characteristic, communicationError;
 
 module.exports = function (oService, oCharacteristic, oCommunicationError) {
@@ -55,9 +56,9 @@ class HomeAssistantBinarySensor {
     } else {
       this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
     }
-  
+
     this.entity_type = data.entity_id.split('.')[0];
-  
+
     this.client = client;
     this.log = log;
 
@@ -82,7 +83,7 @@ class HomeAssistantBinarySensor {
         callback(null, data.state == "on" ? this.onValue : this.offValue);
       } else {
         callback(communicationError);
-      } 
+      }
     }.bind(this));
   }
   getServices() {
