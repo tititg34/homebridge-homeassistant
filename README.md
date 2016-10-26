@@ -18,18 +18,21 @@ automatically. Easy peasey.
 
 Here's a list of the devices that are currently exposed:
 
-* **Lights** - on/off/brightness
-* **Switches** - on/off
-* **Scenes** - exposed as an on/off switch
-* **Media Players** - exposed as an on/off switch
-* **Lock** - lock/unlock lock
-* **Garage Door** - open/close garage door
-* **Rollershutter** - exposed as a garage door
+* **Binary Sensor** - door, leak, moisture, motion, smoke, and window state
 * **Cover** - exposed as a garage door (see notes)
 * **Fan** - on/off/speed
 * **Input boolean** - on/off
+* **Lights** - on/off/brightness
+* **Lock** - lock/unlock lock
+* **Media Players** - exposed as an on/off switch
+* **Scenes** - exposed as an on/off switch
 * **Sensors** - temperature, light and humidity sensors
-* **Binary Sensor** - door, leak, moisture, motion, smoke, and window state
+* **Switches** - on/off
+
+These devices are currently exposed __but will be removed in the near future__ as [they have been removed from Home Assistant as of 0.32](https://github.com/home-assistant/home-assistant/pull/4037):
+
+* **Garage Door** - open/close garage door
+* **Rollershutter** - exposed as a garage door
 
 ### Scene Support
 
@@ -85,7 +88,7 @@ adding it to your `config.json`.
     "name": "HomeAssistant",
     "host": "http://192.168.1.16:8123",
     "password": "yourapipassword",
-    "supported_types": ["binary_sensor", "fan", "garage_door", "input_boolean", "light", "lock", "media_player", "rollershutter", "scene", "sensor", "switch"]
+    "supported_types": ["binary_sensor", "cover", "fan", "garage_door", "input_boolean", "light", "lock", "media_player", "rollershutter", "scene", "sensor", "switch"]
   }
 ]
 ```
