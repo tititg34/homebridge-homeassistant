@@ -29,6 +29,7 @@ module.exports = function(homebridge) {
   HomeAssistantRollershutter = require('./accessories/rollershutter')(Service, Characteristic, communicationError);
   HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic, communicationError);
   HomeAssistantFan = require('./accessories/fan')(Service, Characteristic, communicationError);
+  HomeAssistantCover = require('./accessories/cover')(Service, Characteristic, communicationError);
   HomeAssistantSensorFactory = require('./accessories/sensor')(Service, Characteristic, communicationError);
   HomeAssistantBinarySensorFactory = require('./accessories/binary_sensor')(Service, Characteristic, communicationError);
 
@@ -188,6 +189,8 @@ HomeAssistantPlatform.prototype = {
           accessory = new HomeAssistantSwitch(that.log, entity, that, 'input_boolean')
         }else if (entity_type == 'fan'){
           accessory = new HomeAssistantFan(that.log, entity, that)
+        }else if (entity_type == 'cover'){
+          accessory = new HomeAssistantCover(that.log, entity, that)
         }else if (entity_type == 'sensor'){
           accessory = HomeAssistantSensorFactory(that.log, entity, that)
         }else if (entity_type == 'binary_sensor' && entity.attributes && entity.attributes.sensor_class) {
