@@ -116,7 +116,7 @@ HomeAssistantCover.prototype = {
   getServices: function() {
     this.coverService = (this.cover_type === "garage_door") ? new Service.GarageDoorOpener() : new Service.WindowCovering();
     this.model = (this.cover_type === "garage_door") ? "Garage Door" : "Rollershutter";
-    this.stateCharacteristic = (this.cover_type === "garage_door") ? Characteristic.CurrentDoorState : Characteristic.TargetDoorState;
+    this.stateCharacteristic = (this.cover_type === "garage_door") ? Characteristic.CurrentDoorState : Characteristic.CurrentPosition;
     this.targetCharacteristic = (this.cover_type === "garage_door") ? Characteristic.TargetDoorState : Characteristic.TargetPosition;
     this.stateCharacteristicGetFunction = (this.cover_type === "garage_door") ? this.getCoverState : this.getPosition;
     this.targetCharacteristicGetFunction = (this.cover_type === "garage_door") ? this.getCoverState : this.getPosition;
