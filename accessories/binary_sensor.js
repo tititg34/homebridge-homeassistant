@@ -42,6 +42,9 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
           Characteristic.SmokeDetected.SMOKE_DETECTED,
           Characteristic.SmokeDetected.SMOKE_NOT_DETECTED);
     default:
+      log.error("'"+data.entity_id+"' has a sensor_class of '"+data.attributes.sensor_class+"' which is not supported by " +
+                "homebridge-homeassistant. Supported classes are 'moisture', 'motion', 'occupancy', 'opening' and 'smoke'. "+
+                "See the README.md for more information.")
       return null;
   }
 }

@@ -16,8 +16,6 @@ var HomeAssistantSensorFactory;
 var HomeAssistantBinarySensorFactory;
 
 module.exports = function(homebridge) {
-  console.log("homebridge API version: " + homebridge.version);
-
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
   Accessory = homebridge.platformAccessory;
@@ -38,7 +36,6 @@ module.exports = function(homebridge) {
 
 function HomeAssistantPlatform(log, config, api){
   // auth info
-  console.log("Booting Platform");
   this.host = config.host;
   this.password = config.password;
   this.supportedTypes = config.supported_types;
@@ -53,9 +50,9 @@ function HomeAssistantPlatform(log, config, api){
     // Listen to event "didFinishLaunching", this means homebridge already finished loading cached accessories
     // Platform Plugin should only register new accessory that doesn't exist in homebridge after this event.
     // Or start discover new accessories
-    this.api.on('didFinishLaunching', function() {
-      console.log("Plugin - DidFinishLaunching");
-    }.bind(this));
+    // this.api.on('didFinishLaunching', function() {
+    //   console.log("Plugin - DidFinishLaunching");
+    // }.bind(this));
   }
 
   var es = new EventSource(config.host + '/api/stream?api_password=' + encodeURIComponent(this.password));
