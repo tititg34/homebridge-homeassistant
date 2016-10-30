@@ -34,25 +34,11 @@ These devices are currently exposed __but will be removed in the near future__ a
 * **Garage Door** - open/close garage door
 * **Rollershutter** - exposed as a garage door
 
-### Scene Support
+### Binary Sensor Support
 
-Scenes will appear to HomeKit as switches. To trigger them, you can simply say
-"turn on party time". In some cases, scene names are already reserved in
-HomeKit...like "Good Morning" and "Good Night". These scenes already exist and
-cannot be deleted. Simply add your Home Assistant scene to them and set the
-state you would like them to be when executed. That's most like the ON state.
+Binary Sensors must have a `sensor_class` set. Accepted `sensor_class`es are `moisture`, `motion`, `occupancy`, `opening` and `smoke`. 
 
-### Media Player Support
-
-Media players on your Home Assistant will be added to your HomeKit as a switch.
-While this seems like a hack at first, it's actually quite useful. While you
-can't control everything a media player does, it will give you the ability to
-toggle them on or off.
-
-There are some rules to know about how on/off treats your media player. If
-your media player supports play/pause, then turning them on and off via
-HomeKit will play and pause them. If they do not support play/pause but instead
-support on/off they will be turned on and off.
+For binary sensors with the `opening` `sensor_class` you can also set `homebridge_opening_type` to `window` to have the entity display as a window instead of a door to Homebridge.
 
 ### Cover Support
 
@@ -67,6 +53,26 @@ customize:
   cover.garage:
     homebridge_cover_type: garage_door
 ```
+
+### Media Player Support
+
+Media players on your Home Assistant will be added to your HomeKit as a switch.
+While this seems like a hack at first, it's actually quite useful. While you
+can't control everything a media player does, it will give you the ability to
+toggle them on or off.
+
+There are some rules to know about how on/off treats your media player. If
+your media player supports play/pause, then turning them on and off via
+HomeKit will play and pause them. If they do not support play/pause but instead
+support on/off they will be turned on and off.
+
+### Scene Support
+
+Scenes will appear to HomeKit as switches. To trigger them, you can simply say
+"turn on party time". In some cases, scene names are already reserved in
+HomeKit...like "Good Morning" and "Good Night". These scenes already exist and
+cannot be deleted. Simply add your Home Assistant scene to them and set the
+state you would like them to be when executed. That's most like the ON state.
 
 ## Installation
 
@@ -86,9 +92,9 @@ adding it to your `config.json`.
   {
     "platform": "HomeAssistant",
     "name": "HomeAssistant",
-    "host": "http://192.168.1.16:8123",
+    "host": "http://127.0.0.1:8123",
     "password": "yourapipassword",
-    "supported_types": ["binary_sensor", "cover", "fan", "garage_door", "input_boolean", "light", "lock", "media_player", "rollershutter", "scene", "sensor", "switch"]
+    "supported_types": ["binary_sensor", "cover", "fan", "input_boolean", "light", "lock", "media_player", "scene", "sensor", "switch"]
   }
 ]
 ```
@@ -96,6 +102,7 @@ adding it to your `config.json`.
 You can optionally whitelist the device types that are exposed to HomeKit with the `supported_types` array. Just remove a device type that you don't want and they will be ignored.
 
 ### Using with self signed SSL certificates
+
 If you have set up SSL using a self signed certificate, you will need to start Homebridge after running `export NODE_TLS_REJECT_UNAUTHORIZED=0` to allow bypassing the Node.js certificate checks.
 
 ## Customization
