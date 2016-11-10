@@ -1,6 +1,6 @@
 var Accessory, Service, Characteristic;
 var url = require('url')
-var request = require("request");
+var request = require('request');
 var EventSource = require('eventsource');
 
 var communicationError = new Error('Can not communicate with Home Assistant.')
@@ -27,7 +27,7 @@ module.exports = function(homebridge) {
   HomeAssistantSensorFactory = require('./accessories/sensor')(Service, Characteristic, communicationError);
   HomeAssistantBinarySensorFactory = require('./accessories/binary_sensor')(Service, Characteristic, communicationError);
 
-  homebridge.registerPlatform("homebridge-homeassistant", "HomeAssistant", HomeAssistantPlatform, false);
+  homebridge.registerPlatform('homebridge-homeassistant', 'HomeAssistant', HomeAssistantPlatform, false);
 }
 
 function HomeAssistantPlatform(log, config, api){
@@ -42,13 +42,6 @@ function HomeAssistantPlatform(log, config, api){
   if (api) {
     // Save the API object as plugin needs to register new accessory via this object.
     this.api = api;
-
-    // Listen to event "didFinishLaunching", this means homebridge already finished loading cached accessories
-    // Platform Plugin should only register new accessory that doesn't exist in homebridge after this event.
-    // Or start discover new accessories
-    // this.api.on('didFinishLaunching', function() {
-    //   console.log("Plugin - DidFinishLaunching");
-    // }.bind(this));
   }
 
   var es = new EventSource(config.host + '/api/stream?api_password=' + encodeURIComponent(this.password));
@@ -127,13 +120,13 @@ HomeAssistantPlatform.prototype = {
     })
   },
   accessories: function(callback) {
-    this.log("Fetching HomeAssistant devices.");
+    this.log('Fetching HomeAssistant devices.');
 
     var that = this;
 
     this._request('GET', '/states', {}, function(error, response, data){
       if (error) {
-        that.log("Failed getting devices: " + error + ". Retrying...");
+        that.log('Failed getting devices: ' + error + '. Retrying...');
         setTimeout(function() { that.accessories(callback); }, 5000);
         return;
       }
@@ -171,11 +164,11 @@ HomeAssistantPlatform.prototype = {
         }else if (entity_type == 'lock'){
           accessory = new HomeAssistantLock(that.log, entity, that)
         }else if (entity_type == 'garage_door'){
-          that.log.error("Garage_doors are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).");
+          that.log.error('Garage_doors are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).');
         }else if (entity_type == 'scene'){
           accessory = new HomeAssistantSwitch(that.log, entity, that, 'scene')
         }else if (entity_type == 'rollershutter'){
-          that.log.error("Rollershutters are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).");
+          that.log.error('Rollershutters are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).');
         }else if (entity_type == 'media_player' && entity.attributes && entity.attributes.supported_media_commands){
           accessory = new HomeAssistantMediaPlayer(that.log, entity, that)
         }else if (entity_type == 'input_boolean'){
@@ -184,8 +177,8 @@ HomeAssistantPlatform.prototype = {
           accessory = new HomeAssistantFan(that.log, entity, that)
         }else if (entity_type == 'cover'){
           if (entity.attributes && entity.attributes.homebridge_cover_type && (
-            entity.attributes.homebridge_cover_type === "rollershutter" ||
-            entity.attributes.homebridge_cover_type === "garage_door"
+            entity.attributes.homebridge_cover_type === 'rollershutter' ||
+            entity.attributes.homebridge_cover_type === 'garage_door'
           )) {
             accessory = new HomeAssistantCover(that.log, entity, that, entity.attributes.homebridge_cover_type)
           } else {
