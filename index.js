@@ -8,9 +8,7 @@ var communicationError = new Error('Can not communicate with Home Assistant.')
 var HomeAssistantLight;
 var HomeAssistantSwitch;
 var HomeAssistantLock;
-var HomeAssistantGarageDoor;
 var HomeAssistantMediaPlayer;
-var HomeAssistantRollershutter;
 var HomeAssistantFan;
 var HomeAssistantSensorFactory;
 var HomeAssistantBinarySensorFactory;
@@ -23,8 +21,6 @@ module.exports = function(homebridge) {
   HomeAssistantLight = require('./accessories/light')(Service, Characteristic, communicationError);
   HomeAssistantSwitch = require('./accessories/switch')(Service, Characteristic, communicationError);
   HomeAssistantLock = require('./accessories/lock')(Service, Characteristic, communicationError);
-  HomeAssistantGarageDoor = require('./accessories/garage_door')(Service, Characteristic, communicationError);
-  HomeAssistantRollershutter = require('./accessories/rollershutter')(Service, Characteristic, communicationError);
   HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic, communicationError);
   HomeAssistantFan = require('./accessories/fan')(Service, Characteristic, communicationError);
   HomeAssistantCover = require('./accessories/cover')(Service, Characteristic, communicationError);
@@ -175,11 +171,11 @@ HomeAssistantPlatform.prototype = {
         }else if (entity_type == 'lock'){
           accessory = new HomeAssistantLock(that.log, entity, that)
         }else if (entity_type == 'garage_door'){
-          accessory = new HomeAssistantGarageDoor(that.log, entity, that)
+          that.log.error("Garage_doors are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).");
         }else if (entity_type == 'scene'){
           accessory = new HomeAssistantSwitch(that.log, entity, that, 'scene')
         }else if (entity_type == 'rollershutter'){
-          accessory = new HomeAssistantRollershutter(that.log, entity, that)
+          that.log.error("Rollershutters are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).");
         }else if (entity_type == 'media_player' && entity.attributes && entity.attributes.supported_media_commands){
           accessory = new HomeAssistantMediaPlayer(that.log, entity, that)
         }else if (entity_type == 'input_boolean'){

@@ -29,20 +29,15 @@ Here's a list of the devices that are currently exposed:
 * **Sensors** - temperature, light and humidity sensors
 * **Switches** - on/off
 
-These devices are currently exposed __but will be removed in the near future__ as [they have been removed from Home Assistant as of 0.32](https://github.com/home-assistant/home-assistant/pull/4037):
-
-* **Garage Door** - open/close garage door
-* **Rollershutter** - exposed as a garage door
-
 ### Binary Sensor Support
 
-Binary Sensors must have a `sensor_class` set. Accepted `sensor_class`es are `moisture`, `motion`, `occupancy`, `opening` and `smoke`. 
+Binary Sensors must have a `sensor_class` set. Accepted `sensor_class`es are `moisture`, `motion`, `occupancy`, `opening` and `smoke`.
 
 For binary sensors with the `opening` `sensor_class` you can also set `homebridge_opening_type` to `window` to have the entity display as a window instead of a door to Homebridge.
 
 ### Cover Support
 
-Covers on your Home Assistant will appear as a garage door by default. In order 
+Covers on your Home Assistant will appear as a garage door by default. In order
 to do change this you may specify its type in the `customize` section of your
 Home Assistant's `configuration.yaml`. Refer to the following example:
 
