@@ -55,7 +55,7 @@ HomeAssistantSwitch.prototype = {
 
             this.client.callService(this.domain, 'turn_on', service_data, function(data){
                 if (this.domain == 'scene') {
-                  this.switchService.getCharacteristic(Characteristic.On)
+                    this.switchService.getCharacteristic(Characteristic.On)
                     .setValue('off', null, 'internal');
                 }
                 if (data) {
