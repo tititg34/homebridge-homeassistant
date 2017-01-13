@@ -25,7 +25,7 @@ function HomeAssistantSensorFactory(log, data, client) {
             }
             return value;
         };
-    } else if (data.attributes.unit_of_measurement === '%' && data.entity_id.includes('humidity')) {
+    } else if (data.attributes.unit_of_measurement === '%' && (data.entity_id.includes('humidity') || data.attributes.homebridge_humidity_sensor)) {
         service = Service.HumiditySensor;
         characteristic = Characteristic.CurrentRelativeHumidity;
     } else if (data.attributes.unit_of_measurement === 'lux') {
