@@ -25,7 +25,7 @@ function HomeAssistantSensorFactory(log, data, client) {
             }
             return value;
         };
-    } else if (data.attributes.unit_of_measurement === '%' && (data.entity_id.includes('humidity') || data.attributes.homebridge_humidity_sensor)) {
+    } else if (data.attributes.unit_of_measurement === '%' && (data.entity_id.includes('humidity') || data.attributes.homebridge_sensor_type == 'humidity')) {
         service = Service.HumiditySensor;
         characteristic = Characteristic.CurrentRelativeHumidity;
     } else if (data.attributes.unit_of_measurement === 'lux') {
@@ -34,6 +34,9 @@ function HomeAssistantSensorFactory(log, data, client) {
         transformData = function(data) {
             return Math.max(0.0001, parseFloat(data.state));
         };
+    } else if (data.attributes.unit_of_measurement === 'ppm' && (data.entity_id.includes('co2') || data.attributes.homebridge_sensor_type == 'co2')) {
+        service = Service.CarbonDioxideSensor;
+        characteristic = Characteristic.CarbonDioxideLevel;
     } else {
         return null;
     }
@@ -70,8 +73,18 @@ class HomeAssistantSensor {
     }
 
     onEvent(old_state, new_state) {
-        this.sensorService.getCharacteristic(this.characteristic)
-          .setValue(this.transformData(new_state), null, 'internal');
+        if (this.service == Service.CarbonDioxideSensor) {
+            var transformed = this.transformData(new_state);
+            this.sensorService.getCharacteristic(this.characteristic)
+              .setValue(transformed, null, 'internal');
+
+            var detected = (transformed > 1000 ? Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL : Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL);
+            this.sensorService.getCharacteristic(Characteristic.CarbonDioxideDetected)
+              .setValue(detected, null, 'internal');
+        } else {
+            this.sensorService.getCharacteristic(this.characteristic)
+              .setValue(this.transformData(new_state), null, 'internal');
+        }
     }
 
     identify(callback){
