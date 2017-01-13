@@ -54,6 +54,10 @@ HomeAssistantSwitch.prototype = {
             this.log('Setting power state on the \''+this.name+'\' to on');
 
             this.client.callService(this.domain, 'turn_on', service_data, function(data){
+                if (this.domain == 'scene') {
+                  this.switchService.getCharacteristic(Characteristic.On)
+                    .setValue('off', null, 'internal');
+                }
                 if (data) {
                     that.log('Successfully set power state on the \''+that.name+'\' to on');
                     callback();
