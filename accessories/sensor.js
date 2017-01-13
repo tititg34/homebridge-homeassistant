@@ -101,6 +101,7 @@ class HomeAssistantSensor {
 
     this.sensorService
       .getCharacteristic(this.characteristic)
+      .setProps({minValue: -50})
       .on('get', this.getState.bind(this));
 
     return [informationService, this.sensorService];
