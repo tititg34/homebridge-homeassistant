@@ -34,7 +34,7 @@ function HomeAssistantPlatform(log, config, api){
     // auth info
     this.host = config.host;
     this.password = config.password;
-    this.supportedTypes = config.supported_types || ["binary_sensor", "cover", "fan", "input_boolean", "light", "lock", "media_player", "scene", "sensor", "switch"];
+    this.supportedTypes = config.supported_types || ['binary_sensor', 'cover', 'fan', 'input_boolean', 'light', 'lock', 'media_player', 'scene', 'sensor', 'switch'];
     this.foundAccessories = [];
 
     this.log = log;
