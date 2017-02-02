@@ -46,7 +46,7 @@ function HomeAssistantPlatform(log, config, api){
 
     var es = new EventSource(config.host + '/api/stream?api_password=' + encodeURIComponent(this.password));
     es.addEventListener('message', function(e) {
-        this.log('Received event: ' + e.data);
+        //this.log('Received event: ' + e.data);
         if (e.data == 'ping')
             return;
 
