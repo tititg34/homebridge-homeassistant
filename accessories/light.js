@@ -86,319 +86,319 @@ const LightUtil = {
 /* eslint-enable */
 
 function HomeAssistantLight(log, data, client) {
-    // device info
-    this.domain = 'light';
-    this.data = data;
-    this.entity_id = data.entity_id;
-    this.uuid_base = data.entity_id;
-    if (data.attributes && data.attributes.friendly_name) {
-        this.name = data.attributes.friendly_name;
-    } else {
-        this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
-    }
+  // device info
+  this.domain = 'light';
+  this.data = data;
+  this.entity_id = data.entity_id;
+  this.uuid_base = data.entity_id;
+  if (data.attributes && data.attributes.friendly_name) {
+    this.name = data.attributes.friendly_name;
+  } else {
+    this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
+  }
 
-    this.client = client;
-    this.log = log;
+  this.client = client;
+  this.log = log;
 }
 
 HomeAssistantLight.prototype = {
-    features: Object.freeze({
-        BRIGHTNESS: 1,
-        COLOR_TEMP: 2,
-        EFFECT: 4,
-        FLASH: 8,
-        RGB_COLOR: 16,
-        TRANSITION: 32,
-        XY_COLOR: 64,
-    }),
-    is_supported(feature) {
-        // If the supported_features attribute doesn't exist, assume supported
-        if (this.data.attributes.supported_features === undefined) {
-            return true;
-        }
+  features: Object.freeze({
+    BRIGHTNESS: 1,
+    COLOR_TEMP: 2,
+    EFFECT: 4,
+    FLASH: 8,
+    RGB_COLOR: 16,
+    TRANSITION: 32,
+    XY_COLOR: 64,
+  }),
+  is_supported(feature) {
+    // If the supported_features attribute doesn't exist, assume supported
+    if (this.data.attributes.supported_features === undefined) {
+      return true;
+    }
 
-        return (this.data.attributes.supported_features & feature) > 0;
-    },
-    onEvent(oldState, newState) {
-        this.lightbulbService.getCharacteristic(Characteristic.On)
-          .setValue(newState.state === 'on', null, 'internal');
-        if (this.is_supported(this.features.BRIGHTNESS)) {
-            const brightness = Math.round(((newState.attributes.brightness || 0) / 255) * 100);
+    return (this.data.attributes.supported_features & feature) > 0;
+  },
+  onEvent(oldState, newState) {
+    this.lightbulbService.getCharacteristic(Characteristic.On)
+        .setValue(newState.state === 'on', null, 'internal');
+    if (this.is_supported(this.features.BRIGHTNESS)) {
+      const brightness = Math.round(((newState.attributes.brightness || 0) / 255) * 100);
 
-            this.lightbulbService.getCharacteristic(Characteristic.Brightness)
-              .setValue(brightness, null, 'internal');
+      this.lightbulbService.getCharacteristic(Characteristic.Brightness)
+          .setValue(brightness, null, 'internal');
 
-            this.data.attributes.brightness = newState.attributes.brightness;
-        }
+      this.data.attributes.brightness = newState.attributes.brightness;
+    }
 
-        if (this.is_supported(this.features.RGB_COLOR) &&
+    if (this.is_supported(this.features.RGB_COLOR) &&
             newState.attributes.rgb_color !== undefined) {
-            const rgbColor = newState.attributes.rgb_color;
-            const hsv = LightUtil.rgbToHsv(rgbColor[0], rgbColor[1], rgbColor[2]);
-            const hue = hsv.h * 360;
-            const saturation = hsv.s * 100;
+      const rgbColor = newState.attributes.rgb_color;
+      const hsv = LightUtil.rgbToHsv(rgbColor[0], rgbColor[1], rgbColor[2]);
+      const hue = hsv.h * 360;
+      const saturation = hsv.s * 100;
 
-            this.lightbulbService.getCharacteristic(Characteristic.Hue)
-              .setValue(hue, null, 'internal');
-            this.lightbulbService.getCharacteristic(Characteristic.Saturation)
-              .setValue(saturation, null, 'internal');
+      this.lightbulbService.getCharacteristic(Characteristic.Hue)
+          .setValue(hue, null, 'internal');
+      this.lightbulbService.getCharacteristic(Characteristic.Saturation)
+          .setValue(saturation, null, 'internal');
 
-            this.data.attributes.hue = hue;
-            this.data.attributes.saturation = saturation;
-        }
-    },
-    identify(callback) {
-        this.log(`identifying: ${this.name}`);
+      this.data.attributes.hue = hue;
+      this.data.attributes.saturation = saturation;
+    }
+  },
+  identify(callback) {
+    this.log(`identifying: ${this.name}`);
 
-        const that = this;
-        const serviceData = {};
-        serviceData.entity_id = this.entity_id;
-        serviceData.flash = 'short';
+    const that = this;
+    const serviceData = {};
+    serviceData.entity_id = this.entity_id;
+    serviceData.flash = 'short';
 
-        this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
-            if (data) {
-                that.log(`Successfully identified '${that.name}'`);
-            }
-            callback();
-        });
-    },
-    getPowerState(callback) {
-        this.log(`fetching power state for: ${this.name}`);
+    this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
+      if (data) {
+        that.log(`Successfully identified '${that.name}'`);
+      }
+      callback();
+    });
+  },
+  getPowerState(callback) {
+    this.log(`fetching power state for: ${this.name}`);
 
-        this.client.fetchState(this.entity_id, (data) => {
-            if (data) {
-                const powerState = data.state === 'on';
-                callback(null, powerState);
-            } else {
-                callback(communicationError);
-            }
-        });
-    },
-    getBrightness(callback) {
-        this.log(`fetching brightness for: ${this.name}`);
+    this.client.fetchState(this.entity_id, (data) => {
+      if (data) {
+        const powerState = data.state === 'on';
+        callback(null, powerState);
+      } else {
+        callback(communicationError);
+      }
+    });
+  },
+  getBrightness(callback) {
+    this.log(`fetching brightness for: ${this.name}`);
 
-        this.client.fetchState(this.entity_id, (data) => {
-            if (data && data.attributes) {
-                const brightness = ((data.attributes.brightness || 0) / 255) * 100;
-                callback(null, brightness);
-            } else {
-                callback(communicationError);
-            }
-        });
-    },
-    getHue(callback) {
-        const that = this;
-        this.client.fetchState(this.entity_id, (data) => {
-            if (data && data.attributes && data.attributes.rgb_color) {
-                const rgb = data.attributes.rgb_color;
-                const hsv = LightUtil.rgbToHsv(rgb[0], rgb[1], rgb[2]);
+    this.client.fetchState(this.entity_id, (data) => {
+      if (data && data.attributes) {
+        const brightness = ((data.attributes.brightness || 0) / 255) * 100;
+        callback(null, brightness);
+      } else {
+        callback(communicationError);
+      }
+    });
+  },
+  getHue(callback) {
+    const that = this;
+    this.client.fetchState(this.entity_id, (data) => {
+      if (data && data.attributes && data.attributes.rgb_color) {
+        const rgb = data.attributes.rgb_color;
+        const hsv = LightUtil.rgbToHsv(rgb[0], rgb[1], rgb[2]);
 
-                const hue = hsv.h * 360;
-                that.data.attributes.hue = hue;
+        const hue = hsv.h * 360;
+        that.data.attributes.hue = hue;
 
-                callback(null, hue);
-            } else {
-                callback(communicationError);
-            }
-        });
-    },
-    getSaturation(callback) {
-        const that = this;
-        this.client.fetchState(this.entity_id, (data) => {
-            if (data && data.attributes && data.attributes.rgb_color) {
-                const rgb = data.attributes.rgb_color;
-                const hsv = LightUtil.rgbToHsv(rgb[0], rgb[1], rgb[2]);
+        callback(null, hue);
+      } else {
+        callback(communicationError);
+      }
+    });
+  },
+  getSaturation(callback) {
+    const that = this;
+    this.client.fetchState(this.entity_id, (data) => {
+      if (data && data.attributes && data.attributes.rgb_color) {
+        const rgb = data.attributes.rgb_color;
+        const hsv = LightUtil.rgbToHsv(rgb[0], rgb[1], rgb[2]);
 
-                const saturation = hsv.s * 100;
-                that.data.attributes.saturation = saturation;
+        const saturation = hsv.s * 100;
+        that.data.attributes.saturation = saturation;
 
-                callback(null, saturation);
-            } else {
-                callback(communicationError);
-            }
-        });
-    },
-    setPowerState(powerOn, callback, context) {
-        if (context === 'internal') {
-            callback();
-            return;
-        }
+        callback(null, saturation);
+      } else {
+        callback(communicationError);
+      }
+    });
+  },
+  setPowerState(powerOn, callback, context) {
+    if (context === 'internal') {
+      callback();
+      return;
+    }
 
-        const that = this;
-        const serviceData = {};
-        serviceData.entity_id = this.entity_id;
+    const that = this;
+    const serviceData = {};
+    serviceData.entity_id = this.entity_id;
 
-        if (powerOn) {
-            this.log(`Setting power state on the '${this.name}' to on`);
+    if (powerOn) {
+      this.log(`Setting power state on the '${this.name}' to on`);
 
-            this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
-                if (data) {
-                    that.log(`Successfully set power state on the '${that.name}' to on`);
-                    callback();
-                } else {
-                    callback(communicationError);
-                }
-            });
+      this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
+        if (data) {
+          that.log(`Successfully set power state on the '${that.name}' to on`);
+          callback();
         } else {
-            this.log(`Setting power state on the '${this.name}' to off`);
-
-            this.client.callService(this.domain, 'turn_off', serviceData, (data) => {
-                if (data) {
-                    that.log(`Successfully set power state on the '${that.name}' to off`);
-                    callback();
-                } else {
-                    callback(communicationError);
-                }
-            });
+          callback(communicationError);
         }
-    },
-    setBrightness(level, callback, context) {
-        if (context === 'internal') {
-            callback();
-            return;
+      });
+    } else {
+      this.log(`Setting power state on the '${this.name}' to off`);
+
+      this.client.callService(this.domain, 'turn_off', serviceData, (data) => {
+        if (data) {
+          that.log(`Successfully set power state on the '${that.name}' to off`);
+          callback();
+        } else {
+          callback(communicationError);
         }
+      });
+    }
+  },
+  setBrightness(level, callback, context) {
+    if (context === 'internal') {
+      callback();
+      return;
+    }
 
-        const that = this;
-        const serviceData = {};
-        serviceData.entity_id = this.entity_id;
+    const that = this;
+    const serviceData = {};
+    serviceData.entity_id = this.entity_id;
 
-        serviceData.brightness = 255 * (level / 100.0);
+    serviceData.brightness = 255 * (level / 100.0);
 
-        // To make sure setBrightness is done after the setPowerState
-        setTimeout(() => {
-            this.log(`Setting brightness on the '${this.name}' to ${level}`);
-            this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
-                if (data) {
-                    that.log(`Successfully set brightness on the '${that.name}' to ${level}`);
-                    callback();
-                } else {
-                    callback(communicationError);
-                }
-            });
-        }, 800);
-    },
-    setHue(level, callback, context) {
-        if (context === 'internal') {
-            callback();
-            return;
+    // To make sure setBrightness is done after the setPowerState
+    setTimeout(() => {
+      this.log(`Setting brightness on the '${this.name}' to ${level}`);
+      this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
+        if (data) {
+          that.log(`Successfully set brightness on the '${that.name}' to ${level}`);
+          callback();
+        } else {
+          callback(communicationError);
         }
+      });
+    }, 800);
+  },
+  setHue(level, callback, context) {
+    if (context === 'internal') {
+      callback();
+      return;
+    }
 
-        const that = this;
-        const serviceData = {};
-        serviceData.entity_id = this.entity_id;
-        this.data.attributes.hue = level;
+    const that = this;
+    const serviceData = {};
+    serviceData.entity_id = this.entity_id;
+    this.data.attributes.hue = level;
 
-        const rgb = LightUtil.hsvToRgb(
+    const rgb = LightUtil.hsvToRgb(
             (this.data.attributes.hue || 0) / 360,
             (this.data.attributes.saturation || 0) / 100,
             (this.data.attributes.brightness || 0) / 255,
         );
-        if (this.data.attributes.saturation !== undefined) {
-            if (this.is_supported(this.features.XY_COLOR)) {
-                serviceData.xy_color = LightUtil.rgbToCie(rgb.r, rgb.g, rgb.b);
-            } else {
-                serviceData.rgb_color = [rgb.r, rgb.g, rgb.b];
-            }
+    if (this.data.attributes.saturation !== undefined) {
+      if (this.is_supported(this.features.XY_COLOR)) {
+        serviceData.xy_color = LightUtil.rgbToCie(rgb.r, rgb.g, rgb.b);
+      } else {
+        serviceData.rgb_color = [rgb.r, rgb.g, rgb.b];
+      }
+    }
+
+    this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
+      if (data) {
+        that.log(`Successfully set hue on the '${that.name}' to ${level}`);
+        if (that.is_supported(that.features.XY_COLOR)) {
+          that.log(`Successfully set xy on the '${that.name}' to ${serviceData.xy_color}`);
+        } else {
+          that.log(`Successfully set rgb on the '${that.name}' to ${serviceData.rgb_color}`);
         }
+        callback();
+      } else {
+        callback(communicationError);
+      }
+    });
+  },
+  setSaturation(level, callback, context) {
+    if (context === 'internal') {
+      callback();
+      return;
+    }
 
-        this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
-            if (data) {
-                that.log(`Successfully set hue on the '${that.name}' to ${level}`);
-                if (that.is_supported(that.features.XY_COLOR)) {
-                    that.log(`Successfully set xy on the '${that.name}' to ${serviceData.xy_color}`);
-                } else {
-                    that.log(`Successfully set rgb on the '${that.name}' to ${serviceData.rgb_color}`);
-                }
-                callback();
-            } else {
-                callback(communicationError);
-            }
-        });
-    },
-    setSaturation(level, callback, context) {
-        if (context === 'internal') {
-            callback();
-            return;
-        }
+    const that = this;
+    const serviceData = {};
+    serviceData.entity_id = this.entity_id;
 
-        const that = this;
-        const serviceData = {};
-        serviceData.entity_id = this.entity_id;
+    this.data.attributes.saturation = level;
 
-        this.data.attributes.saturation = level;
-
-        const rgb = LightUtil.hsvToRgb(
+    const rgb = LightUtil.hsvToRgb(
             (this.data.attributes.hue || 0) / 360,
             (this.data.attributes.saturation || 0) / 100,
             (this.data.attributes.brightness || 0) / 255,
         );
 
-        if (this.data.attributes.hue !== undefined) {
-            if (this.is_supported(this.features.XY_COLOR)) {
-                serviceData.xy_color = LightUtil.rgbToCie(rgb.r, rgb.g, rgb.b);
-            } else {
-                serviceData.rgb_color = [rgb.r, rgb.g, rgb.b];
-            }
+    if (this.data.attributes.hue !== undefined) {
+      if (this.is_supported(this.features.XY_COLOR)) {
+        serviceData.xy_color = LightUtil.rgbToCie(rgb.r, rgb.g, rgb.b);
+      } else {
+        serviceData.rgb_color = [rgb.r, rgb.g, rgb.b];
+      }
+    }
+
+    this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
+      if (data) {
+        that.log(`Successfully set saturation on the '${that.name}' to ${level}`);
+        if (that.is_supported(that.features.XY_COLOR)) {
+          that.log(`Successfully set xy on the '${that.name}' to ${serviceData.xy_color}`);
+        } else {
+          that.log(`Successfully set rgb on the '${that.name}' to ${serviceData.rgb_color}`);
         }
+        callback();
+      } else {
+        callback(communicationError);
+      }
+    });
+  },
+  getServices() {
+    this.lightbulbService = new Service.Lightbulb();
+    const informationService = new Service.AccessoryInformation();
 
-        this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
-            if (data) {
-                that.log(`Successfully set saturation on the '${that.name}' to ${level}`);
-                if (that.is_supported(that.features.XY_COLOR)) {
-                    that.log(`Successfully set xy on the '${that.name}' to ${serviceData.xy_color}`);
-                } else {
-                    that.log(`Successfully set rgb on the '${that.name}' to ${serviceData.rgb_color}`);
-                }
-                callback();
-            } else {
-                callback(communicationError);
-            }
-        });
-    },
-    getServices() {
-        this.lightbulbService = new Service.Lightbulb();
-        const informationService = new Service.AccessoryInformation();
-
-        informationService
+    informationService
           .setCharacteristic(Characteristic.Manufacturer, 'Home Assistant')
           .setCharacteristic(Characteristic.Model, 'Light')
           .setCharacteristic(Characteristic.SerialNumber, this.entity_id);
 
-        this.lightbulbService
+    this.lightbulbService
           .getCharacteristic(Characteristic.On)
           .on('get', this.getPowerState.bind(this))
           .on('set', this.setPowerState.bind(this));
 
-        if (this.is_supported(this.features.BRIGHTNESS)) {
-            this.lightbulbService
+    if (this.is_supported(this.features.BRIGHTNESS)) {
+      this.lightbulbService
               .addCharacteristic(Characteristic.Brightness)
               .on('get', this.getBrightness.bind(this))
               .on('set', this.setBrightness.bind(this));
-        }
+    }
 
-        if (this.is_supported(this.features.RGB_COLOR)) {
-            this.lightbulbService
+    if (this.is_supported(this.features.RGB_COLOR)) {
+      this.lightbulbService
               .addCharacteristic(Characteristic.Hue)
               .on('get', this.getHue.bind(this))
               .on('set', this.setHue.bind(this));
 
-            this.lightbulbService
+      this.lightbulbService
               .addCharacteristic(Characteristic.Saturation)
               .on('get', this.getSaturation.bind(this))
               .on('set', this.setSaturation.bind(this));
-        }
+    }
 
-        return [informationService, this.lightbulbService];
-    },
+    return [informationService, this.lightbulbService];
+  },
 
 };
 
 function HomeAssistantLightPlatform(oService, oCharacteristic, oCommunicationError) {
-    Service = oService;
-    Characteristic = oCharacteristic;
-    communicationError = oCommunicationError;
+  Service = oService;
+  Characteristic = oCharacteristic;
+  communicationError = oCommunicationError;
 
-    return HomeAssistantLight;
+  return HomeAssistantLight;
 }
 
 module.exports = HomeAssistantLightPlatform;
