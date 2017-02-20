@@ -82,7 +82,7 @@ class HomeAssistantGarageDoor extends HomeAssistantCover {
     this.targetCharacteristic = Characteristic.TargetDoorState;
   }
 
-  static transformData(data) {
+  transformData(data) {
     return data.state === 'closed' ? this.stateCharacteristic.CLOSED : this.stateCharacteristic.OPEN;
   }
 
@@ -105,7 +105,7 @@ class HomeAssistantRollershutter extends HomeAssistantCover {
     this.targetCharacteristic = Characteristic.TargetPosition;
   }
 
-  static transformData(data) {
+  transformData(data) {
     return (data && data.attributes) ? data.attributes.current_position : null;
   }
 
@@ -133,7 +133,7 @@ class HomeAssistantRollershutter extends HomeAssistantCover {
 }
 
 class HomeAssistantRollershutterBinary extends HomeAssistantRollershutter {
-  static transformData(data) {
+  transformData(data) {
     return (data && data.state) ? ((data.state === 'open') * 100) : null;
   }
 
