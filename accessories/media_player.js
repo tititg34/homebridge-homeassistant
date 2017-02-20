@@ -1,26 +1,19 @@
-var Service, Characteristic, communicationError;
-
-module.exports = function (oService, oCharacteristic, oCommunicationError) {
-    Service = oService;
-    Characteristic = oCharacteristic;
-    communicationError = oCommunicationError;
-
-    return HomeAssistantMediaPlayer;
-};
-module.exports.HomeAssistantMediaPlayer = HomeAssistantMediaPlayer;
+let Service;
+let Characteristic;
+let communicationError;
 
 function HomeAssistantMediaPlayer(log, data, client) {
     /* eslint-disable no-unused-vars */
-    var SUPPORT_PAUSE = 1;
-    var SUPPORT_SEEK = 2;
-    var SUPPORT_VOLUME_SET = 4;
-    var SUPPORT_VOLUME_MUTE = 8;
-    var SUPPORT_PREVIOUS_TRACK = 16;
-    var SUPPORT_NEXT_TRACK = 32;
-    var SUPPORT_YOUTUBE = 64;
-    var SUPPORT_TURN_ON = 128;
-    var SUPPORT_TURN_OFF = 256;
-    var SUPPORT_STOP = 4096;
+    const SUPPORT_PAUSE = 1;
+    const SUPPORT_SEEK = 2;
+    const SUPPORT_VOLUME_SET = 4;
+    const SUPPORT_VOLUME_MUTE = 8;
+    const SUPPORT_PREVIOUS_TRACK = 16;
+    const SUPPORT_NEXT_TRACK = 32;
+    const SUPPORT_YOUTUBE = 64;
+    const SUPPORT_TURN_ON = 128;
+    const SUPPORT_TURN_OFF = 256;
+    const SUPPORT_STOP = 4096;
     /* eslint-enable no-unused-vars */
 
     // device info
@@ -36,17 +29,18 @@ function HomeAssistantMediaPlayer(log, data, client) {
         this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
     }
 
-    if ((this.supportedFeatures | SUPPORT_STOP) == this.supportedFeatures) {
+    if ((this.supportedFeatures | SUPPORT_STOP) === this.supportedFeatures) {
         this.onState = 'playing';
         this.offState = 'idle';
         this.onService = 'media_play';
         this.offService = 'media_stop';
-    } else if ((this.supportedFeatures | SUPPORT_PAUSE) == this.supportedFeatures) {
+    } else if ((this.supportedFeatures | SUPPORT_PAUSE) === this.supportedFeatures) {
         this.onState = 'playing';
         this.offState = 'paused';
         this.onService = 'media_play';
         this.offService = 'media_pause';
-    } else if ((this.supportedFeatures | SUPPORT_TURN_ON) == this.supportedFeatures && (this.supportedFeatures | SUPPORT_TURN_OFF) == this.supportedFeatures) {
+    } else if ((this.supportedFeatures | SUPPORT_TURN_ON) === this.supportedFeatures &&
+               (this.supportedFeatures | SUPPORT_TURN_OFF) === this.supportedFeatures) {
         this.onState = 'on';
         this.offState = 'off';
         this.onService = 'turn_on';
@@ -58,59 +52,59 @@ function HomeAssistantMediaPlayer(log, data, client) {
 }
 
 HomeAssistantMediaPlayer.prototype = {
-    onEvent: function(old_state, new_state) {
+    onEvent(oldState, newState) {
         this.switchService.getCharacteristic(Characteristic.On)
-          .setValue(new_state.state == this.onState, null, 'internal');
+          .setValue(newState.state === this.onState, null, 'internal');
     },
-    getPowerState: function(callback){
-        this.log('fetching power state for: ' + this.name);
+    getPowerState(callback) {
+        this.log(`fetching power state for: ${this.name}`);
 
-        this.client.fetchState(this.entity_id, function(data){
+        this.client.fetchState(this.entity_id, (data) => {
             if (data) {
-                var powerState = data.state == this.onState;
+                const powerState = data.state === this.onState;
                 callback(null, powerState);
             } else {
                 callback(communicationError);
             }
-        }.bind(this));
+        });
     },
-    setPowerState: function(powerOn, callback, context) {
-        if (context == 'internal') {
+    setPowerState(powerOn, callback, context) {
+        if (context === 'internal') {
             callback();
             return;
         }
 
-        var that = this;
-        var service_data = {};
-        service_data.entity_id = this.entity_id;
+        const that = this;
+        const serviceData = {};
+        serviceData.entity_id = this.entity_id;
 
         if (powerOn) {
-            this.log('Setting power state on the \''+this.name+'\' to on');
+            this.log(`Setting power state on the '${this.name}' to on`);
 
-            this.client.callService(this.domain, this.onService, service_data, function(data){
+            this.client.callService(this.domain, this.onService, serviceData, (data) => {
                 if (data) {
-                    that.log('Successfully set power state on the \''+that.name+'\' to on');
+                    that.log(`Successfully set power state on the '${that.name}' to on`);
                     callback();
                 } else {
                     callback(communicationError);
                 }
-            }.bind(this));
+            });
         } else {
-            this.log('Setting power state on the \''+this.name+'\' to off');
+            this.log(`Setting power state on the '${this.name}' to off`);
 
-            this.client.callService(this.domain, this.offService, service_data, function(data){
+            this.client.callService(this.domain, this.offService, serviceData, (data) => {
                 if (data) {
-                    that.log('Successfully set power state on the \''+that.name+'\' to off');
+                    that.log(`Successfully set power state on the '${that.name}' to off`);
                     callback();
                 } else {
                     callback(communicationError);
                 }
-            }.bind(this));
+            });
         }
     },
-    getServices: function() {
+    getServices() {
         this.switchService = new Service.Switch();
-        var informationService = new Service.AccessoryInformation();
+        const informationService = new Service.AccessoryInformation();
 
         informationService
           .setCharacteristic(Characteristic.Manufacturer, 'Home Assistant')
@@ -123,6 +117,17 @@ HomeAssistantMediaPlayer.prototype = {
           .on('set', this.setPowerState.bind(this));
 
         return [informationService, this.switchService];
-    }
+    },
 
 };
+
+function HomeAssistantMediaPlayerPlatform(oService, oCharacteristic, oCommunicationError) {
+    Service = oService;
+    Characteristic = oCharacteristic;
+    communicationError = oCommunicationError;
+
+    return HomeAssistantMediaPlayer;
+}
+
+module.exports = HomeAssistantMediaPlayerPlatform;
+module.exports.HomeAssistantMediaPlayer = HomeAssistantMediaPlayer;

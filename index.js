@@ -1,36 +1,21 @@
-var Service, Characteristic;
-var url = require('url')
-  , request = require('request')
-  , EventSource = require('eventsource');
+let Service;
+let Characteristic;
+const url = require('url');
+const request = require('request');
+const EventSource = require('eventsource');
 
-var communicationError = new Error('Can not communicate with Home Assistant.');
+const communicationError = new Error('Can not communicate with Home Assistant.');
 
-var HomeAssistantBinarySensorFactory;
-var HomeAssistantCoverFactory;
-var HomeAssistantFan;
-var HomeAssistantLight;
-var HomeAssistantLock;
-var HomeAssistantMediaPlayer;
-var HomeAssistantSensorFactory;
-var HomeAssistantSwitch;
+let HomeAssistantBinarySensorFactory;
+let HomeAssistantCoverFactory;
+let HomeAssistantFan;
+let HomeAssistantLight;
+let HomeAssistantLock;
+let HomeAssistantMediaPlayer;
+let HomeAssistantSensorFactory;
+let HomeAssistantSwitch;
 
-module.exports = function(homebridge) {
-    Service = homebridge.hap.Service;
-    Characteristic = homebridge.hap.Characteristic;
-
-    HomeAssistantLight = require('./accessories/light')(Service, Characteristic, communicationError);
-    HomeAssistantSwitch = require('./accessories/switch')(Service, Characteristic, communicationError);
-    HomeAssistantLock = require('./accessories/lock')(Service, Characteristic, communicationError);
-    HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic, communicationError);
-    HomeAssistantFan = require('./accessories/fan')(Service, Characteristic, communicationError);
-    HomeAssistantCoverFactory = require('./accessories/cover')(Service, Characteristic, communicationError);
-    HomeAssistantSensorFactory = require('./accessories/sensor')(Service, Characteristic, communicationError);
-    HomeAssistantBinarySensorFactory = require('./accessories/binary_sensor')(Service, Characteristic, communicationError);
-
-    homebridge.registerPlatform('homebridge-homeassistant', 'HomeAssistant', HomeAssistantPlatform, false);
-};
-
-function HomeAssistantPlatform(log, config, api){
+function HomeAssistantPlatform(log, config, api) {
     // auth info
     this.host = config.host;
     this.password = config.password;
@@ -45,46 +30,52 @@ function HomeAssistantPlatform(log, config, api){
         this.api = api;
     }
 
-    var es = new EventSource(config.host + '/api/stream?api_password=' + encodeURIComponent(this.password));
-    es.addEventListener('message', function(e) {
-        if (this.logging)
-            this.log('Received event: ' + e.data);
-        if (e.data == 'ping')
-            return;
-
-        var data = JSON.parse(e.data);
-        if (data.event_type != 'state_changed')
-            return;
-
-        var numAccessories = this.foundAccessories.length;
-        for (var i = 0; i < numAccessories; i++) {
-            var accessory = this.foundAccessories[i];
-
-            if (accessory.entity_id == data.data.entity_id && accessory.onEvent)
-                accessory.onEvent(data.data.old_state, data.data.new_state);
+    const es = new EventSource(`${config.host}/api/stream?api_password=${encodeURIComponent(this.password)}`);
+    es.addEventListener('message', (e) => {
+        if (this.logging) {
+            this.log(`Received event: ${e.data}`);
         }
-    }.bind(this));
+        if (e.data === 'ping') {
+            return;
+        }
+
+        const data = JSON.parse(e.data);
+        if (data.event_type !== 'state_changed') {
+            return;
+        }
+
+        const numAccessories = this.foundAccessories.length;
+        for (let i = 0; i < numAccessories; i + 1) {
+            const accessory = this.foundAccessories[i];
+
+            if (accessory.entityID === data.data.entityID && accessory.onEvent) {
+                accessory.onEvent(data.data.old_state, data.data.new_state);
+            }
+        }
+    });
 }
 
 HomeAssistantPlatform.prototype = {
-    _request: function(method, path, options, callback) {
-        var requestURL = this.host + '/api' + path;
+    request(method, path, options, callback) {
+        const requestURL = `${this.host}/api${path}`;
+        /* eslint-disable no-param-reassign */
         options = options || {};
         options.query = options.query || {};
+        /* eslint-enable no-param-reassign */
 
-        var reqOpts = {
+        const reqOpts = {
             url: url.parse(requestURL),
             method: method || 'GET',
             qs: options.query,
             body: JSON.stringify(options.body),
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'Content-Type': 'application/json',
-                'x-ha-access': this.password
-            }
+                'x-ha-access': this.password,
+            },
         };
 
-        request(reqOpts, function onResponse(error, response, body) {
+        request(reqOpts, (error, response, body) => {
             if (error) {
                 callback(error, response);
                 return;
@@ -97,47 +88,47 @@ HomeAssistantPlatform.prototype = {
 
             callback(error, response, JSON.parse(body));
         });
-
     },
-    fetchState: function(entity_id, callback){
-        this._request('GET', '/states/' + entity_id, {}, function(error, response, data){
+    fetchState(entityID, callback) {
+        this.request('GET', `/states/${entityID}`, {}, (error, response, data) => {
             if (error) {
                 callback(null);
-            }else{
+            } else {
                 callback(data);
             }
         });
     },
-    callService: function(domain, service, service_data, callback){
-        var options = {};
-        options.body = service_data;
+    callService(domain, service, serviceData, callback) {
+        const options = {};
+        options.body = serviceData;
 
-        this._request('POST', '/services/' + domain + '/' + service, options, function(error, response, data){
+        this.request('POST', `/services/${domain}/${service}`, options, (error, response, data) => {
             if (error) {
                 callback(null);
-            }else{
+            } else {
                 callback(data);
             }
         });
     },
-    accessories: function(callback) {
+    accessories(callback) {
         this.log('Fetching HomeAssistant devices.');
 
-        var that = this;
+        const that = this;
 
-        this._request('GET', '/states', {}, function(error, response, data){
+        this.request('GET', '/states', {}, (error, response, data) => {
             if (error) {
-                that.log('Failed getting devices: ' + error + '. Retrying...');
-                setTimeout(function() { that.accessories(callback); }, 5000);
+                that.log(`Failed getting devices: ${error}. Retrying...`);
+                setTimeout(() => { that.accessories(callback); }, 5000);
                 return;
             }
 
-            for (var i = 0; i < data.length; i++) {
-                var entity = data[i];
-                var entity_type = entity.entity_id.split('.')[0];
+            for (let i = 0; i < data.length; i + 1) {
+                const entity = data[i];
+                const entityType = entity.entityID.split('.')[0];
 
+                /* eslint-disable no-continue */
                 // ignore devices that are not in the list of supported types
-                if (that.supportedTypes.indexOf(entity_type) == -1) {
+                if (that.supportedTypes.indexOf(entityType) === -1) {
                     continue;
                 }
 
@@ -150,37 +141,38 @@ HomeAssistantPlatform.prototype = {
                 if (entity.attributes && entity.attributes.homebridge_hidden) {
                     continue;
                 }
+                /* eslint-enable no-continue */
 
                 // support providing custom names
                 if (entity.attributes && entity.attributes.homebridge_name) {
                     entity.attributes.friendly_name = entity.attributes.homebridge_name;
                 }
 
-                var accessory = null;
+                let accessory = null;
 
-                if (entity_type == 'light') {
+                if (entityType === 'light') {
                     accessory = new HomeAssistantLight(that.log, entity, that);
-                }else if (entity_type == 'switch'){
+                } else if (entityType === 'switch') {
                     accessory = new HomeAssistantSwitch(that.log, entity, that);
-                }else if (entity_type == 'lock'){
+                } else if (entityType === 'lock') {
                     accessory = new HomeAssistantLock(that.log, entity, that);
-                }else if (entity_type == 'garage_door'){
+                } else if (entityType === 'garage_door') {
                     that.log.error('Garage_doors are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).');
-                }else if (entity_type == 'scene'){
+                } else if (entityType === 'scene') {
                     accessory = new HomeAssistantSwitch(that.log, entity, that, 'scene');
-                }else if (entity_type == 'rollershutter'){
+                } else if (entityType === 'rollershutter') {
                     that.log.error('Rollershutters are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).');
-                }else if (entity_type == 'media_player' && entity.attributes && entity.attributes.supported_features){
+                } else if (entityType === 'media_player' && entity.attributes && entity.attributes.supported_features) {
                     accessory = new HomeAssistantMediaPlayer(that.log, entity, that);
-                }else if (entity_type == 'input_boolean'){
+                } else if (entityType === 'input_boolean') {
                     accessory = new HomeAssistantSwitch(that.log, entity, that, 'input_boolean');
-                }else if (entity_type == 'fan'){
+                } else if (entityType === 'fan') {
                     accessory = new HomeAssistantFan(that.log, entity, that);
-                }else if (entity_type == 'cover'){
+                } else if (entityType === 'cover') {
                     accessory = HomeAssistantCoverFactory(that.log, entity, that);
-                }else if (entity_type == 'sensor'){
+                } else if (entityType === 'sensor') {
                     accessory = HomeAssistantSensorFactory(that.log, entity, that);
-                }else if (entity_type == 'binary_sensor' && entity.attributes && entity.attributes.sensor_class) {
+                } else if (entityType === 'binary_sensor' && entity.attributes && entity.attributes.sensor_class) {
                     accessory = HomeAssistantBinarySensorFactory(that.log, entity, that);
                 }
 
@@ -191,8 +183,27 @@ HomeAssistantPlatform.prototype = {
 
             callback(that.foundAccessories);
         });
-
-    }
+    },
 };
+
+function HomebridgeHomeAssistant(homebridge) {
+    Service = homebridge.hap.Service;
+    Characteristic = homebridge.hap.Characteristic;
+
+    /* eslint-disable global-require */
+    HomeAssistantLight = require('./accessories/light')(Service, Characteristic, communicationError);
+    HomeAssistantSwitch = require('./accessories/switch')(Service, Characteristic, communicationError);
+    HomeAssistantLock = require('./accessories/lock')(Service, Characteristic, communicationError);
+    HomeAssistantMediaPlayer = require('./accessories/media_player')(Service, Characteristic, communicationError);
+    HomeAssistantFan = require('./accessories/fan')(Service, Characteristic, communicationError);
+    HomeAssistantCoverFactory = require('./accessories/cover')(Service, Characteristic, communicationError);
+    HomeAssistantSensorFactory = require('./accessories/sensor')(Service, Characteristic, communicationError);
+    HomeAssistantBinarySensorFactory = require('./accessories/binary_sensor')(Service, Characteristic, communicationError);
+    /* eslint-enable global-require */
+
+    homebridge.registerPlatform('homebridge-homeassistant', 'HomeAssistant', HomeAssistantPlatform, false);
+}
+
+module.exports = HomebridgeHomeAssistant;
 
 module.exports.platform = HomeAssistantPlatform;

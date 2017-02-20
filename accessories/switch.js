@@ -1,13 +1,6 @@
-var Service, Characteristic, communicationError;
-
-module.exports = function (oService, oCharacteristic, oCommunicationError) {
-    Service = oService;
-    Characteristic = oCharacteristic;
-    communicationError = oCommunicationError;
-
-    return HomeAssistantSwitch;
-};
-module.exports.HomeAssistantSwitch = HomeAssistantSwitch;
+let Service;
+let Characteristic;
+let communicationError;
 
 function HomeAssistantSwitch(log, data, client, type) {
     // device info
@@ -26,62 +19,62 @@ function HomeAssistantSwitch(log, data, client, type) {
 }
 
 HomeAssistantSwitch.prototype = {
-    onEvent: function(old_state, new_state) {
+    onEvent(oldState, newState) {
         this.switchService.getCharacteristic(Characteristic.On)
-          .setValue(new_state.state == 'on', null, 'internal');
+          .setValue(newState.state === 'on', null, 'internal');
     },
-    getPowerState: function(callback){
-        this.client.fetchState(this.entity_id, function(data){
+    getPowerState(callback) {
+        this.client.fetchState(this.entity_id, (data) => {
             if (data) {
-                var powerState = data.state == 'on';
+                const powerState = data.state === 'on';
                 callback(null, powerState);
             } else {
                 callback(communicationError);
             }
-        }.bind(this));
+        });
     },
-    setPowerState: function(powerOn, callback, context) {
-        if (context == 'internal') {
+    setPowerState(powerOn, callback, context) {
+        if (context === 'internal') {
             callback();
             return;
         }
 
-        var that = this;
-        var service_data = {};
-        service_data.entity_id = this.entity_id;
+        const that = this;
+        const serviceData = {};
+        serviceData.entity_id = this.entity_id;
 
         if (powerOn) {
-            this.log('Setting power state on the \''+this.name+'\' to on');
+            this.log(`Setting power state on the '${this.name}' to on`);
 
-            this.client.callService(this.domain, 'turn_on', service_data, function(data){
-                if (this.domain == 'scene') {
+            this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
+                if (this.domain === 'scene') {
                     this.switchService.getCharacteristic(Characteristic.On)
                     .setValue('off', null, 'internal');
                 }
                 if (data) {
-                    that.log('Successfully set power state on the \''+that.name+'\' to on');
+                    that.log(`Successfully set power state on the '${that.name}' to on`);
                     callback();
                 } else {
                     callback(communicationError);
                 }
-            }.bind(this));
+            });
         } else {
-            this.log('Setting power state on the \''+this.name+'\' to off');
+            this.log(`Setting power state on the '${this.name}' to off`);
 
-            this.client.callService(this.domain, 'turn_off', service_data, function(data){
+            this.client.callService(this.domain, 'turn_off', serviceData, (data) => {
                 if (data) {
-                    that.log('Successfully set power state on the \''+that.name+'\' to off');
+                    that.log(`Successfully set power state on the '${that.name}' to off`);
                     callback();
                 } else {
                     callback(communicationError);
                 }
-            }.bind(this));
+            });
         }
     },
-    getServices: function() {
+    getServices() {
         this.switchService = new Service.Switch();
-        var informationService = new Service.AccessoryInformation();
-        var model;
+        const informationService = new Service.AccessoryInformation();
+        let model;
 
         switch (this.domain) {
         case 'scene':
@@ -99,7 +92,7 @@ HomeAssistantSwitch.prototype = {
           .setCharacteristic(Characteristic.Model, model)
           .setCharacteristic(Characteristic.SerialNumber, this.entity_id);
 
-        if (this.domain == 'switch') {
+        if (this.domain === 'switch') {
             this.switchService
               .getCharacteristic(Characteristic.On)
               .on('get', this.getPowerState.bind(this))
@@ -111,6 +104,17 @@ HomeAssistantSwitch.prototype = {
         }
 
         return [informationService, this.switchService];
-    }
+    },
 
 };
+
+function HomeAssistantSwitchPlatform(oService, oCharacteristic, oCommunicationError) {
+    Service = oService;
+    Characteristic = oCharacteristic;
+    communicationError = oCommunicationError;
+
+    return HomeAssistantSwitch;
+}
+
+module.exports = HomeAssistantSwitchPlatform;
+module.exports.HomeAssistantSwitch = HomeAssistantSwitch;

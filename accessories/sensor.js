@@ -1,48 +1,6 @@
-'use strict';
-var Service, Characteristic, communicationError;
-
-module.exports = function (oService, oCharacteristic, oCommunicationError) {
-    Service = oService;
-    Characteristic = oCharacteristic;
-    communicationError = oCommunicationError;
-
-    return HomeAssistantSensorFactory;
-};
-
-function HomeAssistantSensorFactory(log, data, client) {
-    if (!data.attributes) {
-        return null;
-    }
-    var service, characteristic, transformData;
-    if (data.attributes.unit_of_measurement === '°C' || data.attributes.unit_of_measurement === '°F') {
-        service = Service.TemperatureSensor;
-        characteristic = Characteristic.CurrentTemperature;
-        transformData = function(data) {
-            var value = parseFloat(data.state);
-            // HomeKit only works with Celsius internally
-            if (data.attributes.unit_of_measurement === '°F') {
-                value = (value - 32) / 1.8;
-            }
-            return value;
-        };
-    } else if (data.attributes.unit_of_measurement === '%' && (data.entity_id.includes('humidity') || data.attributes.homebridge_sensor_type == 'humidity')) {
-        service = Service.HumiditySensor;
-        characteristic = Characteristic.CurrentRelativeHumidity;
-    } else if (data.attributes.unit_of_measurement === 'lux') {
-        service = Service.LightSensor;
-        characteristic = Characteristic.CurrentAmbientLightLevel;
-        transformData = function(data) {
-            return Math.max(0.0001, parseFloat(data.state));
-        };
-    } else if (data.attributes.unit_of_measurement === 'ppm' && (data.entity_id.includes('co2') || data.attributes.homebridge_sensor_type == 'co2')) {
-        service = Service.CarbonDioxideSensor;
-        characteristic = Characteristic.CarbonDioxideLevel;
-    } else {
-        return null;
-    }
-
-    return new HomeAssistantSensor(log, data, client, service, characteristic, transformData);
-}
+let Service;
+let Characteristic;
+let communicationError;
 
 class HomeAssistantSensor {
     constructor(log, data, client, service, characteristic, transformData) {
@@ -68,44 +26,46 @@ class HomeAssistantSensor {
         }
     }
 
-    transformData(data) {
+    static transformData(data) {
         return parseFloat(data.state);
     }
 
-    onEvent(old_state, new_state) {
-        if (this.service == Service.CarbonDioxideSensor) {
-            var transformed = this.transformData(new_state);
+    onEvent(oldState, newState) {
+        if (this.service === Service.CarbonDioxideSensor) {
+            const transformed = this.transformData(newState);
             this.sensorService.getCharacteristic(this.characteristic)
               .setValue(transformed, null, 'internal');
 
-            var detected = (transformed > 1000 ? Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL : Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL);
+            const abnormal = Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL;
+            const normal = Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL;
+            const detected = (transformed > 1000 ? abnormal : normal);
             this.sensorService.getCharacteristic(Characteristic.CarbonDioxideDetected)
               .setValue(detected, null, 'internal');
         } else {
             this.sensorService.getCharacteristic(this.characteristic)
-              .setValue(this.transformData(new_state), null, 'internal');
+              .setValue(this.transformData(newState), null, 'internal');
         }
     }
 
-    identify(callback){
-        this.log('identifying: ' + this.name);
+    identify(callback) {
+        this.log(`identifying: ${this.name}`);
         callback();
     }
 
-    getState(callback){
-        this.log('fetching state for: ' + this.name);
-        this.client.fetchState(this.entity_id, function(data) {
+    getState(callback) {
+        this.log(`fetching state for: ${this.name}`);
+        this.client.fetchState(this.entity_id, (data) => {
             if (data) {
                 callback(null, this.transformData(data));
             } else {
                 callback(communicationError);
             }
-        }.bind(this));
+        });
     }
 
     getServices() {
-        this.sensorService = new this.service();
-        var informationService = new Service.AccessoryInformation();
+        this.sensorService = new this.service(); // eslint-disable-line new-cap
+        const informationService = new Service.AccessoryInformation();
 
         informationService
           .setCharacteristic(Characteristic.Manufacturer, 'Home Assistant')
@@ -114,11 +74,58 @@ class HomeAssistantSensor {
 
         this.sensorService
           .getCharacteristic(this.characteristic)
-          .setProps({minValue: -50})
+          .setProps({ minValue: -50 })
           .on('get', this.getState.bind(this));
 
         return [informationService, this.sensorService];
     }
 }
+
+function HomeAssistantSensorFactory(log, data, client) {
+    if (!data.attributes) {
+        return null;
+    }
+    let service;
+    let characteristic;
+    let transformData;
+    if (data.attributes.unit_of_measurement === '°C' || data.attributes.unit_of_measurement === '°F') {
+        service = Service.TemperatureSensor;
+        characteristic = Characteristic.CurrentTemperature;
+        transformData = function transformData(dataToTransform) { // eslint-disable-line no-shadow
+            let value = parseFloat(dataToTransform.state);
+            // HomeKit only works with Celsius internally
+            if (dataToTransform.attributes.unit_of_measurement === '°F') {
+                value = (value - 32) / 1.8;
+            }
+            return value;
+        };
+    } else if (data.attributes.unit_of_measurement === '%' && (data.entity_id.includes('humidity') || data.attributes.homebridge_sensor_type === 'humidity')) {
+        service = Service.HumiditySensor;
+        characteristic = Characteristic.CurrentRelativeHumidity;
+    } else if (data.attributes.unit_of_measurement === 'lux') {
+        service = Service.LightSensor;
+        characteristic = Characteristic.CurrentAmbientLightLevel;
+        transformData = function transformData(dataToTransform) { // eslint-disable-line no-shadow
+            return Math.max(0.0001, parseFloat(dataToTransform.state));
+        };
+    } else if (data.attributes.unit_of_measurement === 'ppm' && (data.entity_id.includes('co2') || data.attributes.homebridge_sensor_type === 'co2')) {
+        service = Service.CarbonDioxideSensor;
+        characteristic = Characteristic.CarbonDioxideLevel;
+    } else {
+        return null;
+    }
+
+    return new HomeAssistantSensor(log, data, client, service, characteristic, transformData);
+}
+
+function HomeAssistantSensorPlatform(oService, oCharacteristic, oCommunicationError) {
+    Service = oService;
+    Characteristic = oCharacteristic;
+    communicationError = oCommunicationError;
+
+    return HomeAssistantSensorFactory;
+}
+
+module.exports = HomeAssistantSensorPlatform;
 
 module.exports.HomeAssistantSensorFactory = HomeAssistantSensorFactory;

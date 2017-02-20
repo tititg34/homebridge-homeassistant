@@ -1,13 +1,6 @@
-var Service, Characteristic, communicationError;
-
-module.exports = function (oService, oCharacteristic, oCommunicationError) {
-    Service = oService;
-    Characteristic = oCharacteristic;
-    communicationError = oCommunicationError;
-
-    return HomeAssistantLock;
-};
-module.exports.HomeAssistantLock = HomeAssistantLock;
+let Service;
+let Characteristic;
+let communicationError;
 
 function HomeAssistantLock(log, data, client) {
     // device info
@@ -26,60 +19,60 @@ function HomeAssistantLock(log, data, client) {
 }
 
 HomeAssistantLock.prototype = {
-    onEvent: function(old_state, new_state) {
-        var lockState = new_state.state == 'unlocked' ? 0 : 1;
+    onEvent(oldState, newState) {
+        const lockState = newState.state === 'unlocked' ? 0 : 1;
         this.lockService.getCharacteristic(Characteristic.LockCurrentState)
           .setValue(lockState, null, 'internal');
         this.lockService.getCharacteristic(Characteristic.LockTargetState)
           .setValue(lockState, null, 'internal');
     },
-    getLockState: function(callback){
-        this.client.fetchState(this.entity_id, function(data){
+    getLockState(callback) {
+        this.client.fetchState(this.entity_id, (data) => {
             if (data) {
-                var lockState = data.state == 'locked';
+                const lockState = data.state === 'locked';
                 callback(null, lockState);
             } else {
                 callback(communicationError);
             }
-        }.bind(this));
+        });
     },
-    setLockState: function(lockOn, callback, context) {
-        if (context == 'internal') {
+    setLockState(lockOn, callback, context) {
+        if (context === 'internal') {
             callback();
             return;
         }
 
-        var that = this;
-        var service_data = {};
-        service_data.entity_id = this.entity_id;
+        const that = this;
+        const serviceData = {};
+        serviceData.entity_id = this.entity_id;
 
         if (lockOn) {
-            this.log('Setting lock state on the \''+this.name+'\' to locked');
+            this.log(`Setting lock state on the '${this.name}' to locked`);
 
-            this.client.callService(this.domain, 'lock', service_data, function(data){
+            this.client.callService(this.domain, 'lock', serviceData, (data) => {
                 if (data) {
-                    that.log('Successfully set lock state on the \''+that.name+'\' to locked');
+                    that.log(`Successfully set lock state on the '${that.name}' to locked`);
                     callback();
                 } else {
                     callback(communicationError);
                 }
-            }.bind(this));
+            });
         } else {
-            this.log('Setting lock state on the \''+this.name+'\' to unlocked');
+            this.log(`Setting lock state on the '${this.name}' to unlocked`);
 
-            this.client.callService(this.domain, 'unlock', service_data, function(data){
+            this.client.callService(this.domain, 'unlock', serviceData, (data) => {
                 if (data) {
-                    that.log('Successfully set lock state on the \''+that.name+'\' to unlocked');
+                    that.log(`Successfully set lock state on the '${that.name}' to unlocked`);
                     callback();
                 } else {
                     callback(communicationError);
                 }
-            }.bind(this));
+            });
         }
     },
-    getServices: function() {
+    getServices() {
         this.lockService = new Service.LockMechanism();
-        var informationService = new Service.AccessoryInformation();
+        const informationService = new Service.AccessoryInformation();
 
         informationService
           .setCharacteristic(Characteristic.Manufacturer, 'Home Assistant')
@@ -96,6 +89,17 @@ HomeAssistantLock.prototype = {
           .on('set', this.setLockState.bind(this));
 
         return [informationService, this.lockService];
-    }
+    },
 
 };
+
+function HomeAssistantLockPlatform(oService, oCharacteristic, oCommunicationError) {
+    Service = oService;
+    Characteristic = oCharacteristic;
+    communicationError = oCommunicationError;
+
+    return HomeAssistantLock;
+}
+
+module.exports = HomeAssistantLockPlatform;
+module.exports.HomeAssistantLock = HomeAssistantLock;

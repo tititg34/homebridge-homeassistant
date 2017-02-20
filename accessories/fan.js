@@ -1,13 +1,6 @@
-var Service, Characteristic, communicationError;
-
-module.exports = function (oService, oCharacteristic, oCommunicationError) {
-    Service = oService;
-    Characteristic = oCharacteristic;
-    communicationError = oCommunicationError;
-
-    return HomeAssistantFan;
-};
-module.exports.HomeAssistantFan = HomeAssistantFan;
+let Service;
+let Characteristic;
+let communicationError;
 
 function HomeAssistantFan(log, data, client) {
     // device info
@@ -26,109 +19,111 @@ function HomeAssistantFan(log, data, client) {
 }
 
 HomeAssistantFan.prototype = {
-    onEvent: function(old_state, new_state) {
+    onEvent(oldState, newState) {
         this.fanService.getCharacteristic(Characteristic.On)
-      .setValue(new_state.state == 'on', null, 'internal');
+      .setValue(newState.state === 'on', null, 'internal');
     },
-    getPowerState: function(callback){
-        this.client.fetchState(this.entity_id, function(data){
+    getPowerState(callback) {
+        this.client.fetchState(this.entity_id, (data) => {
             if (data) {
-                var powerState = data.state == 'on';
+                const powerState = data.state === 'on';
                 callback(null, powerState);
             } else {
                 callback(communicationError);
             }
-        }.bind(this));
+        });
     },
-    setPowerState: function(powerOn, callback, context) {
-        if (context == 'internal') {
+    setPowerState(powerOn, callback, context) {
+        if (context === 'internal') {
             callback();
             return;
         }
 
-        var that = this;
-        var service_data = {};
-        service_data.entity_id = this.entity_id;
+        const that = this;
+        const serviceData = {};
+        serviceData.entity_id = this.entity_id;
 
         if (powerOn) {
-            this.log('Setting power state on the \''+this.name+'\' to on');
+            this.log(`Setting power state on the '${this.name}' to on`);
 
-            this.client.callService(this.domain, 'turn_on', service_data, function(data){
+            this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
                 if (data) {
-                    that.log('Successfully set power state on the \''+that.name+'\' to on');
+                    that.log(`Successfully set power state on the '${that.name}' to on`);
                     callback();
                 } else {
                     callback(communicationError);
                 }
-            }.bind(this));
+            });
         } else {
-            this.log('Setting power state on the \''+this.name+'\' to off');
+            this.log(`Setting power state on the '${this.name}' to off`);
 
-            this.client.callService(this.domain, 'turn_off', service_data, function(data){
+            this.client.callService(this.domain, 'turn_off', serviceData, (data) => {
                 if (data) {
-                    that.log('Successfully set power state on the \''+that.name+'\' to off');
+                    that.log(`Successfully set power state on the '${that.name}' to off`);
                     callback();
                 } else {
                     callback(communicationError);
                 }
-            }.bind(this));
+            });
         }
     },
-    getRotationSpeed: function(callback){
-        this.client.fetchState(this.entity_id, function(data){
+    getRotationSpeed(callback) {
+        this.client.fetchState(this.entity_id, (data) => {
             if (data) {
-                if (data.state == 'off') {
+                if (data.state === 'off') {
                     callback(null, 0);
                 } else {
                     switch (data.attributes.speed) {
                     case 'low':
                         callback(null, 25);
                         break;
-                    case 'med', 'medium':
+                    case 'medium':
                         callback(null, 50);
                         break;
                     case 'high':
                         callback(null, 100);
                         break;
+                    default:
+                        callback(null, 0);
                     }
                 }
             } else {
                 callback(communicationError);
             }
-        }.bind(this));
+        });
     },
-    setRotationSpeed: function(speed, callback, context) {
-        if (context == 'internal') {
+    setRotationSpeed(speed, callback, context) {
+        if (context === 'internal') {
             callback();
             return;
         }
 
-        var that = this;
-        var service_data = {};
-        service_data.entity_id = this.entity_id;
+        const that = this;
+        const serviceData = {};
+        serviceData.entity_id = this.entity_id;
 
         if (speed <= 25) {
-            service_data.speed = 'low';
+            serviceData.speed = 'low';
         } else if (speed <= 75) {
-            service_data.speed = 'med';
+            serviceData.speed = 'med';
         } else if (speed <= 100) {
-            service_data.speed = 'high';
+            serviceData.speed = 'high';
         }
 
-        this.log('Setting speed on the \''+this.name+'\' to '+service_data.speed);
+        this.log(`Setting speed on the '${this.name}' to ${serviceData.speed}`);
 
-        this.client.callService(this.domain, 'set_speed', service_data, function(data){
+        this.client.callService(this.domain, 'set_speed', serviceData, (data) => {
             if (data) {
-                that.log('Successfully set power state on the \''+that.name+'\' to on');
+                that.log(`Successfully set power state on the '${that.name}' to on`);
                 callback();
             } else {
                 callback(communicationError);
             }
-        }.bind(this));
+        });
     },
-    getServices: function() {
+    getServices() {
         this.fanService = new Service.Fan();
-        var informationService = new Service.AccessoryInformation();
+        const informationService = new Service.AccessoryInformation();
 
         informationService
           .setCharacteristic(Characteristic.Manufacturer, 'Home Assistant')
@@ -146,6 +141,17 @@ HomeAssistantFan.prototype = {
           .on('set', this.setRotationSpeed.bind(this));
 
         return [informationService, this.fanService];
-    }
+    },
 
 };
+
+function HomeAssistantFanPlatform(oService, oCharacteristic, oCommunicationError) {
+    Service = oService;
+    Characteristic = oCharacteristic;
+    communicationError = oCommunicationError;
+
+    return HomeAssistantFan;
+}
+
+module.exports = HomeAssistantFanPlatform;
+module.exports.HomeAssistantFan = HomeAssistantFan;
