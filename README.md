@@ -21,6 +21,7 @@ Here's a list of the devices that are currently exposed:
 * **Binary Sensor** - door, leak, moisture, motion, smoke, and window state
 * **Climate** - current temperature, target temperature, heat/cool mode
 * **Cover** - exposed as a garage door or window covering (see notes)
+* **Device Tracker** - home/not home status appears as an occupancy sensor
 * **Fan** - on/off/speed
 * **Input boolean** - on/off
 * **Lights** - on/off/brightness
@@ -49,6 +50,10 @@ customize:
   cover.garage:
     homebridge_cover_type: garage_door
 ```
+
+### Device Tracker
+
+Device trackers will appear in HomeKit as a room occupancy sensor.
 
 ### Media Player Support
 
@@ -103,7 +108,7 @@ To avoid too much information in your log, just set `logging` to `false` as soon
     "name": "HomeAssistant",
     "host": "http://127.0.0.1:8123",
     "password": "yourapipassword",
-    "supported_types": ["binary_sensor", "climate", "cover", "fan", "input_boolean", "light", "lock", "media_player", "scene", "sensor", "switch"],
+    "supported_types": ["binary_sensor", "climate", "cover", "device_tracker", "fan", "input_boolean", "light", "lock", "media_player", "scene", "sensor", "switch"],
     "logging": true
   }
 ]
