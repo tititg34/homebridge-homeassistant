@@ -107,7 +107,7 @@ HomeAssistantFan.prototype = {
     if (speed <= 25) {
       serviceData.speed = 'low';
     } else if (speed <= 75) {
-      serviceData.speed = 'med';
+      serviceData.speed = 'medium';
     } else if (speed <= 100) {
       serviceData.speed = 'high';
     }
