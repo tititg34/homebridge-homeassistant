@@ -19,12 +19,24 @@ class HomeAssistantBinarySensor {
     } else {
       this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
     }
-
+    if (data.attributes && data.attributes.homebridge_mfg) {
+      this.mfg = String(data.attributes.homebridge_mfg);
+    } else {
+      this.mfg = 'Home Assistant';
+    }
+    if (data.attributes && data.attributes.homebridge_model) {
+      this.model = String(data.attributes.homebridge_model);
+    } else {
+      this.model = `${toTitleCase(data.attributes.device_class)} Binary Sensor`;
+    }
+    if (data.attributes && data.attributes.homebridge_serial) {
+      this.serial = String(data.attributes.homebridge_serial);
+    } else {
+      this.serial = data.entity_id;
+    }
     this.entity_type = data.entity_id.split('.')[0];
-
     this.client = client;
     this.log = log;
-
     this.service = service;
     this.characteristic = characteristic;
     this.onValue = onValue;
@@ -58,9 +70,9 @@ class HomeAssistantBinarySensor {
     const informationService = new Service.AccessoryInformation();
 
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, 'Home Assistant')
-          .setCharacteristic(Characteristic.Model, `${toTitleCase(this.data.attributes.device_class)} Binary Sensor`)
-          .setCharacteristic(Characteristic.SerialNumber, this.entity_id);
+          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+          .setCharacteristic(Characteristic.Model, this.model)
+          .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     return [informationService, this.sensorService];
   }
