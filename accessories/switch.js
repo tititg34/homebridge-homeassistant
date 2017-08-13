@@ -124,6 +124,13 @@ HomeAssistantSwitch.prototype = {
           model = 'Remote';
         }
         break;
+      case 'automation':
+        if (this.data.attributes && this.data.attributes.homebridge_model) {
+          model = String(this.data.attributes.homebridge_model);
+        } else {
+          model = 'Automation';
+        }
+        break;
       default:
         model = 'Switch';
     }
@@ -147,7 +154,7 @@ HomeAssistantSwitch.prototype = {
           .setCharacteristic(Characteristic.Model, model)
           .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
-    if (this.domain === 'remote' || this.domain === 'switch' || this.domain === 'input_boolean' || this.domain === 'group') {
+    if (this.domain === 'remote' || this.domain === 'switch' || this.domain === 'input_boolean' || this.domain === 'group' || this.domain === 'automation') {
       this.service
           .getCharacteristic(Characteristic.On)
           .on('get', this.getPowerState.bind(this))
