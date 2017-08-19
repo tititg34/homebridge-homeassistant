@@ -28,13 +28,12 @@ function HomeAssistantPlatform(log, config, api) {
   this.foundAccessories = [];
   this.logging = config.logging !== undefined ? config.logging : true;
   this.verify_ssl = config.verify_ssl !== undefined ? config.verify_ssl : true;
+  this.log = log;
   if (config.default_visibility === 'hidden' || config.default_visibility === 'visible') {
     this.defaultVisibility = config.default_visibility;
   } else {
     this.log.error('Please set default_visibility in config.json to "hidden" or "visible".');
   }
-
-  this.log = log;
 
   if (api) {
     // Save the API object as plugin needs to register new accessory via this object.
