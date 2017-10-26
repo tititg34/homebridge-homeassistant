@@ -50,16 +50,16 @@ class HomeAssistantSensor {
     if (this.service === Service.CarbonDioxideSensor) {
       const transformed = this.transformData(newState);
       this.sensorService.getCharacteristic(this.characteristic)
-          .setValue(transformed, null, 'internal');
+        .setValue(transformed, null, 'internal');
 
       const abnormal = Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL;
       const normal = Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL;
       const detected = (transformed > 1000 ? abnormal : normal);
       this.sensorService.getCharacteristic(Characteristic.CarbonDioxideDetected)
-          .setValue(detected, null, 'internal');
+        .setValue(detected, null, 'internal');
     } else {
       this.sensorService.getCharacteristic(this.characteristic)
-          .setValue(this.transformData(newState), null, 'internal');
+        .setValue(this.transformData(newState), null, 'internal');
     }
   }
 
@@ -115,14 +115,14 @@ class HomeAssistantSensor {
     const informationService = new Service.AccessoryInformation();
 
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-          .setCharacteristic(Characteristic.Model, this.model)
-          .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Model, this.model)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     this.sensorService
-        .getCharacteristic(this.characteristic)
-        .setProps({ minValue: -50 })
-        .on('get', this.getState.bind(this));
+      .getCharacteristic(this.characteristic)
+      .setProps({ minValue: -50 })
+      .on('get', this.getState.bind(this));
 
     if (this.batterySource) {
       this.batteryService = new Service.BatteryService();

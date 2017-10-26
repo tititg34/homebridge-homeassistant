@@ -34,9 +34,9 @@ class HomeAssistantCover {
     const state = this.transformData(newState);
 
     this.service.getCharacteristic(this.stateCharacteristic)
-        .setValue(state, null, 'internal');
+      .setValue(state, null, 'internal');
     this.service.getCharacteristic(this.targetCharacteristic)
-        .setValue(state, null, 'internal');
+      .setValue(state, null, 'internal');
   }
 
   getState(callback) {
@@ -52,18 +52,18 @@ class HomeAssistantCover {
   getServices() {
     const informationService = new Service.AccessoryInformation();
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-          .setCharacteristic(Characteristic.SerialNumber, this.serial)
-          .setCharacteristic(Characteristic.Model, this.model);
+      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.Model, this.model);
 
     this.service
-        .getCharacteristic(this.stateCharacteristic)
-        .on('get', this.getState.bind(this));
+      .getCharacteristic(this.stateCharacteristic)
+      .on('get', this.getState.bind(this));
 
     this.service
-        .getCharacteristic(this.targetCharacteristic)
-        .on('get', this.getState.bind(this))
-        .on('set', this.setTargetState.bind(this));
+      .getCharacteristic(this.targetCharacteristic)
+      .on('get', this.getState.bind(this))
+      .on('set', this.setTargetState.bind(this));
 
     return [informationService, this.service];
   }

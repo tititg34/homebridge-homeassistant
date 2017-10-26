@@ -32,7 +32,7 @@ function HomeAssistantSwitch(log, data, client, type) {
 HomeAssistantSwitch.prototype = {
   onEvent(oldState, newState) {
     this.service.getCharacteristic(Characteristic.On)
-        .setValue(newState.state === 'on', null, 'internal');
+      .setValue(newState.state === 'on', null, 'internal');
   },
   getPowerState(callback) {
     this.client.fetchState(this.entity_id, (data) => {
@@ -62,7 +62,7 @@ HomeAssistantSwitch.prototype = {
         if (this.domain === 'scene' || (this.domain === 'script' && !(this.data.attributes.can_cancel))) {
           setTimeout(() => {
             this.service.getCharacteristic(Characteristic.On)
-                .setValue(false, null, 'internal');
+              .setValue(false, null, 'internal');
           }, 500);
         }
         if (data) {
@@ -131,13 +131,6 @@ HomeAssistantSwitch.prototype = {
           model = 'Automation';
         }
         break;
-      case 'automation':
-        if (this.data.attributes && this.data.attributes.homebridge_model) {
-          model = String(this.data.attributes.homebridge_model);
-        } else {
-          model = 'Automation';
-        }
-        break;
       case 'vacuum':
         if (this.data.attributes && this.data.attributes.homebridge_model) {
           model = String(this.data.attributes.homebridge_model);
@@ -165,25 +158,25 @@ HomeAssistantSwitch.prototype = {
         model = 'Outlet';
       }
       this.service
-          .getCharacteristic(Characteristic.OutletInUse)
-          .on('get', this.getPowerState.bind(this));
+        .getCharacteristic(Characteristic.OutletInUse)
+        .on('get', this.getPowerState.bind(this));
     }
     const informationService = new Service.AccessoryInformation();
 
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-          .setCharacteristic(Characteristic.Model, model)
-          .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Model, model)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     if (this.domain === 'remote' || this.domain === 'switch' || this.domain === 'input_boolean' || this.domain === 'group' || this.domain === 'automation' || this.domain === 'vacuum' || (this.domain === 'script' && this.data.attributes.can_cancel)) {
       this.service
-          .getCharacteristic(Characteristic.On)
-          .on('get', this.getPowerState.bind(this))
-          .on('set', this.setPowerState.bind(this));
+        .getCharacteristic(Characteristic.On)
+        .on('get', this.getPowerState.bind(this))
+        .on('set', this.setPowerState.bind(this));
     } else {
       this.service
-          .getCharacteristic(Characteristic.On)
-          .on('set', this.setPowerState.bind(this));
+        .getCharacteristic(Characteristic.On)
+        .on('set', this.setPowerState.bind(this));
     }
 
     return [informationService, this.service];

@@ -126,7 +126,6 @@ function HomeAssistantLight(log, data, client) {
   if (data.attributes.homebridge_min_mireds) {
     this.minTemp = data.attributes.homebridge_min_mireds;
   }
-
 }
 
 HomeAssistantLight.prototype = {
@@ -149,12 +148,12 @@ HomeAssistantLight.prototype = {
   },
   onEvent(oldState, newState) {
     this.lightbulbService.getCharacteristic(Characteristic.On)
-        .setValue(newState.state === 'on', null, 'internal');
+      .setValue(newState.state === 'on', null, 'internal');
     if (this.is_supported(this.features.BRIGHTNESS)) {
       const brightness = Math.round(((newState.attributes.brightness || 0) / 255) * 100);
 
       this.lightbulbService.getCharacteristic(Characteristic.Brightness)
-          .setValue(brightness, null, 'internal');
+        .setValue(brightness, null, 'internal');
 
       this.data.attributes.brightness = newState.attributes.brightness;
     }
@@ -167,9 +166,9 @@ HomeAssistantLight.prototype = {
       const saturation = hsv.s * 100;
 
       this.lightbulbService.getCharacteristic(Characteristic.Hue)
-          .setValue(hue, null, 'internal');
+        .setValue(hue, null, 'internal');
       this.lightbulbService.getCharacteristic(Characteristic.Saturation)
-          .setValue(saturation, null, 'internal');
+        .setValue(saturation, null, 'internal');
 
       this.data.attributes.hue = hue;
       this.data.attributes.saturation = saturation;
@@ -179,7 +178,7 @@ HomeAssistantLight.prototype = {
       const colorTemperature = Math.round(newState.attributes.color_temp) || this.minTemp;
 
       this.lightbulbService.getCharacteristic(Characteristic.ColorTemperature)
-            .setValue(colorTemperature, null, 'internal');
+        .setValue(colorTemperature, null, 'internal');
     }
   },
   identify(callback) {
@@ -337,9 +336,10 @@ HomeAssistantLight.prototype = {
     this.data.attributes.hue = level;
 
     const rgb = LightUtil.hsvToRgb(
-            (this.data.attributes.hue || 0) / 360,
-            (this.data.attributes.saturation || 0) / 100,
-            (this.data.attributes.brightness || 0) / 255);
+      (this.data.attributes.hue || 0) / 360,
+      (this.data.attributes.saturation || 0) / 100,
+      (this.data.attributes.brightness || 0) / 255
+    );
     if (this.data.attributes.saturation !== undefined) {
       if (this.is_supported(this.features.XY_COLOR)) {
         serviceData.xy_color = LightUtil.rgbToCie(rgb.r, rgb.g, rgb.b);
@@ -375,9 +375,10 @@ HomeAssistantLight.prototype = {
     this.data.attributes.saturation = level;
 
     const rgb = LightUtil.hsvToRgb(
-            (this.data.attributes.hue || 0) / 360,
-            (this.data.attributes.saturation || 0) / 100,
-            (this.data.attributes.brightness || 0) / 255);
+      (this.data.attributes.hue || 0) / 360,
+      (this.data.attributes.saturation || 0) / 100,
+      (this.data.attributes.brightness || 0) / 255
+    );
 
     if (this.data.attributes.hue !== undefined) {
       if (this.is_supported(this.features.XY_COLOR)) {
@@ -426,44 +427,44 @@ HomeAssistantLight.prototype = {
     const informationService = new Service.AccessoryInformation();
 
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-          .setCharacteristic(Characteristic.Model, this.model)
-          .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Model, this.model)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     informationService
-          .setCharacteristic(Characteristic.Identify)
-          .on('set', this.identify.bind(this));
+      .setCharacteristic(Characteristic.Identify)
+      .on('set', this.identify.bind(this));
 
     this.lightbulbService
-          .getCharacteristic(Characteristic.On)
-          .on('get', this.getPowerState.bind(this))
-          .on('set', this.setPowerState.bind(this));
+      .getCharacteristic(Characteristic.On)
+      .on('get', this.getPowerState.bind(this))
+      .on('set', this.setPowerState.bind(this));
 
     if (this.is_supported(this.features.BRIGHTNESS)) {
       this.lightbulbService
-              .addCharacteristic(Characteristic.Brightness)
-              .on('get', this.getBrightness.bind(this))
-              .on('set', this.setBrightness.bind(this));
+        .addCharacteristic(Characteristic.Brightness)
+        .on('get', this.getBrightness.bind(this))
+        .on('set', this.setBrightness.bind(this));
     }
 
     if (this.is_supported(this.features.RGB_COLOR)) {
       this.lightbulbService
-              .addCharacteristic(Characteristic.Hue)
-              .on('get', this.getHue.bind(this))
-              .on('set', this.setHue.bind(this));
+        .addCharacteristic(Characteristic.Hue)
+        .on('get', this.getHue.bind(this))
+        .on('set', this.setHue.bind(this));
 
       this.lightbulbService
-              .addCharacteristic(Characteristic.Saturation)
-              .on('get', this.getSaturation.bind(this))
-              .on('set', this.setSaturation.bind(this));
+        .addCharacteristic(Characteristic.Saturation)
+        .on('get', this.getSaturation.bind(this))
+        .on('set', this.setSaturation.bind(this));
     }
 
     if (this.is_supported(this.features.COLOR_TEMP)) {
       this.lightbulbService
-              .addCharacteristic(Characteristic.ColorTemperature)
-              .setProps({ maxValue: this.maxTemp, minValue: this.minTemp })
-              .on('get', this.getColorTemperature.bind(this))
-              .on('set', this.setColorTemperature.bind(this));
+        .addCharacteristic(Characteristic.ColorTemperature)
+        .setProps({ maxValue: this.maxTemp, minValue: this.minTemp })
+        .on('get', this.getColorTemperature.bind(this))
+        .on('set', this.setColorTemperature.bind(this));
     }
 
     return [informationService, this.lightbulbService];

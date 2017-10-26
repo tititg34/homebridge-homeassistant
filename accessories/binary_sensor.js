@@ -47,7 +47,7 @@ class HomeAssistantBinarySensor {
 
   onEvent(oldState, newState) {
     this.sensorService.getCharacteristic(this.characteristic)
-        .setValue(newState.state === 'on' ? this.onValue : this.offValue, null, 'internal');
+      .setValue(newState.state === 'on' ? this.onValue : this.offValue, null, 'internal');
   }
   identify(callback) {
     this.log(`identifying: ${this.name}`);
@@ -97,15 +97,15 @@ class HomeAssistantBinarySensor {
   getServices() {
     this.sensorService = new this.service(); // eslint-disable-line new-cap
     this.sensorService
-        .getCharacteristic(this.characteristic)
-        .on('get', this.getState.bind(this));
+      .getCharacteristic(this.characteristic)
+      .on('get', this.getState.bind(this));
 
     const informationService = new Service.AccessoryInformation();
 
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-          .setCharacteristic(Characteristic.Model, this.model)
-          .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Model, this.model)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     if (this.batterySource) {
       this.batteryService = new Service.BatteryService();
@@ -133,62 +133,80 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
   switch (data.attributes.device_class) {
     case 'gas':
       if (!(data.attributes.homebridge_gas_type)) {
-        return new HomeAssistantBinarySensor(log, data, client,
-                                             Service.CarbonMonoxideSensor,
-                                             Characteristic.CarbonMonoxideDetected,
-                                             Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
-                                             Characteristic.LeakDetected.CO_LEVELS_NORMAL);
+        return new HomeAssistantBinarySensor(
+          log, data, client,
+          Service.CarbonMonoxideSensor,
+          Characteristic.CarbonMonoxideDetected,
+          Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
+          Characteristic.LeakDetected.CO_LEVELS_NORMAL
+        );
       }
       switch (data.attributes.homebridge_gas_type) {
         case 'co2':
-          return new HomeAssistantBinarySensor(log, data, client,
-                                               Service.CarbonDioxideSensor,
-                                               Characteristic.CarbonDioxideDetected,
-                                               Characteristic.LeakDetected.CO2_LEVELS_ABNORMAL,
-                                               Characteristic.LeakDetected.CO2_LEVELS_NORMAL);
+          return new HomeAssistantBinarySensor(
+            log, data, client,
+            Service.CarbonDioxideSensor,
+            Characteristic.CarbonDioxideDetected,
+            Characteristic.LeakDetected.CO2_LEVELS_ABNORMAL,
+            Characteristic.LeakDetected.CO2_LEVELS_NORMAL
+          );
         case 'co':
-          return new HomeAssistantBinarySensor(log, data, client,
-                                               Service.CarbonMonoxideSensor,
-                                               Characteristic.CarbonMonoxideDetected,
-                                               Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
-                                               Characteristic.LeakDetected.CO_LEVELS_NORMAL);
+          return new HomeAssistantBinarySensor(
+            log, data, client,
+            Service.CarbonMonoxideSensor,
+            Characteristic.CarbonMonoxideDetected,
+            Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
+            Characteristic.LeakDetected.CO_LEVELS_NORMAL
+          );
         default:
-          return new HomeAssistantBinarySensor(log, data, client,
-                                               Service.CarbonMonoxideSensor,
-                                               Characteristic.CarbonMonoxideDetected,
-                                               Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
-                                               Characteristic.LeakDetected.CO_LEVELS_NORMAL);
+          return new HomeAssistantBinarySensor(
+            log, data, client,
+            Service.CarbonMonoxideSensor,
+            Characteristic.CarbonMonoxideDetected,
+            Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
+            Characteristic.LeakDetected.CO_LEVELS_NORMAL
+          );
       }
     case 'moisture':
-      return new HomeAssistantBinarySensor(log, data, client,
-                                           Service.LeakSensor,
-                                           Characteristic.LeakDetected,
-                                           Characteristic.LeakDetected.LEAK_DETECTED,
-                                           Characteristic.LeakDetected.LEAK_NOT_DETECTED);
+      return new HomeAssistantBinarySensor(
+        log, data, client,
+        Service.LeakSensor,
+        Characteristic.LeakDetected,
+        Characteristic.LeakDetected.LEAK_DETECTED,
+        Characteristic.LeakDetected.LEAK_NOT_DETECTED
+      );
     case 'motion':
-      return new HomeAssistantBinarySensor(log, data, client,
-                                           Service.MotionSensor,
-                                           Characteristic.MotionDetected,
-                                           true,
-                                           false);
+      return new HomeAssistantBinarySensor(
+        log, data, client,
+        Service.MotionSensor,
+        Characteristic.MotionDetected,
+        true,
+        false
+      );
     case 'occupancy':
-      return new HomeAssistantBinarySensor(log, data, client,
-                                           Service.OccupancySensor,
-                                           Characteristic.OccupancyDetected,
-                                           Characteristic.OccupancyDetected.OCCUPANCY_DETECTED,
-                                           Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
+      return new HomeAssistantBinarySensor(
+        log, data, client,
+        Service.OccupancySensor,
+        Characteristic.OccupancyDetected,
+        Characteristic.OccupancyDetected.OCCUPANCY_DETECTED,
+        Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED
+      );
     case 'opening':
-      return new HomeAssistantBinarySensor(log, data, client,
-                                           Service.ContactSensor,
-                                           Characteristic.ContactSensorState,
-                                           Characteristic.ContactSensorState.CONTACT_NOT_DETECTED,
-                                           Characteristic.ContactSensorState.CONTACT_DETECTED);
+      return new HomeAssistantBinarySensor(
+        log, data, client,
+        Service.ContactSensor,
+        Characteristic.ContactSensorState,
+        Characteristic.ContactSensorState.CONTACT_NOT_DETECTED,
+        Characteristic.ContactSensorState.CONTACT_DETECTED
+      );
     case 'smoke':
-      return new HomeAssistantBinarySensor(log, data, client,
-                                           Service.SmokeSensor,
-                                           Characteristic.SmokeDetected,
-                                           Characteristic.SmokeDetected.SMOKE_DETECTED,
-                                           Characteristic.SmokeDetected.SMOKE_NOT_DETECTED);
+      return new HomeAssistantBinarySensor(
+        log, data, client,
+        Service.SmokeSensor,
+        Characteristic.SmokeDetected,
+        Characteristic.SmokeDetected.SMOKE_DETECTED,
+        Characteristic.SmokeDetected.SMOKE_NOT_DETECTED
+      );
     default:
       log.error(`'${data.entity_id}' has a device_class of '${data.attributes.device_class}' which is not supported by ` +
                 'homebridge-homeassistant. Supported classes are \'gas\', \'moisture\', \'motion\', \'occupancy\', \'opening\' and \'smoke\'. ' +

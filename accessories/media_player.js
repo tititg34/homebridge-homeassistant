@@ -92,7 +92,7 @@ HomeAssistantMediaPlayer.prototype = {
       powerState = newState.state !== this.offState;
     }
     this.switchService.getCharacteristic(Characteristic.On)
-        .setValue(powerState, null, 'internal');
+      .setValue(powerState, null, 'internal');
   },
   getPowerState(callback) {
     this.log(`fetching power state for: ${this.name}`);
@@ -155,9 +155,9 @@ HomeAssistantMediaPlayer.prototype = {
       .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     this.switchService
-        .getCharacteristic(Characteristic.On)
-        .on('get', this.getPowerState.bind(this))
-        .on('set', this.setPowerState.bind(this));
+      .getCharacteristic(Characteristic.On)
+      .on('get', this.getPowerState.bind(this))
+      .on('set', this.setPowerState.bind(this));
 
     return [informationService, this.switchService];
   },

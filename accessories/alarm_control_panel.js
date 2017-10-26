@@ -52,9 +52,9 @@ HomeAssistantAlarmControlPanel.prototype = {
       alarmState = 3;
     }
     this.alarmService.getCharacteristic(Characteristic.SecuritySystemCurrentState)
-        .setValue(alarmState, null, 'internal');
+      .setValue(alarmState, null, 'internal');
     this.alarmService.getCharacteristic(Characteristic.SecuritySystemTargetState)
-        .setValue(alarmState, null, 'internal');
+      .setValue(alarmState, null, 'internal');
   },
   getAlarmState(callback) {
     this.client.fetchState(this.entity_id, (data) => {
@@ -153,18 +153,18 @@ HomeAssistantAlarmControlPanel.prototype = {
     const informationService = new Service.AccessoryInformation();
 
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-          .setCharacteristic(Characteristic.Model, this.model)
-          .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Model, this.model)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     this.alarmService
-        .getCharacteristic(Characteristic.SecuritySystemCurrentState)
-        .on('get', this.getAlarmState.bind(this));
+      .getCharacteristic(Characteristic.SecuritySystemCurrentState)
+      .on('get', this.getAlarmState.bind(this));
 
     this.alarmService
-        .getCharacteristic(Characteristic.SecuritySystemTargetState)
-        .on('get', this.getAlarmState.bind(this))
-        .on('set', this.setAlarmState.bind(this));
+      .getCharacteristic(Characteristic.SecuritySystemTargetState)
+      .on('get', this.getAlarmState.bind(this))
+      .on('set', this.setAlarmState.bind(this));
 
     return [informationService, this.alarmService];
   },

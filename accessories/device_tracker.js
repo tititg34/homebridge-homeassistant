@@ -6,7 +6,7 @@ var communicationError;
 
 class HomeAssistantDeviceTracker {
   constructor(log, data, client, service, characteristic, onValue, offValue) {
-        // device info
+    // device info
     this.data = data;
     this.entity_id = data.entity_id;
     this.uuid_base = data.entity_id;
@@ -43,7 +43,7 @@ class HomeAssistantDeviceTracker {
 
   onEvent(oldState, newState) {
     this.sensorService.getCharacteristic(this.characteristic)
-          .setValue(newState.state === 'home' ? this.onValue : this.offValue, null, 'internal');
+      .setValue(newState.state === 'home' ? this.onValue : this.offValue, null, 'internal');
   }
   identify(callback) {
     this.log('identifying: ' + this.name);
@@ -93,15 +93,15 @@ class HomeAssistantDeviceTracker {
   getServices() {
     this.sensorService = new this.service();
     this.sensorService
-          .getCharacteristic(this.characteristic)
-          .on('get', this.getState.bind(this));
+      .getCharacteristic(this.characteristic)
+      .on('get', this.getState.bind(this));
 
     var informationService = new Service.AccessoryInformation();
 
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-          .setCharacteristic(Characteristic.Model, this.model)
-          .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Model, this.model)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     if (this.batterySource) {
       this.batteryService = new Service.BatteryService();
@@ -126,11 +126,13 @@ function HomeAssistantDeviceTrackerFactory(log, data, client) {
   if (!(data.attributes)) {
     return null;
   }
-  return new HomeAssistantDeviceTracker(log, data, client,
-      Service.OccupancySensor,
-      Characteristic.OccupancyDetected,
-      Characteristic.OccupancyDetected.OCCUPANCY_DETECTED,
-      Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
+  return new HomeAssistantDeviceTracker(
+    log, data, client,
+    Service.OccupancySensor,
+    Characteristic.OccupancyDetected,
+    Characteristic.OccupancyDetected.OCCUPANCY_DETECTED,
+    Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED
+  );
 }
 
 function HomeAssistantDeviceTrackerFactoryPlatform(oService, oCharacteristic, oCommunicationError) {

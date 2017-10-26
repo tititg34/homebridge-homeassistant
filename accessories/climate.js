@@ -10,14 +10,11 @@ function fahrenheitToCelsius(temperature) {
 function getTempUnits(data) {
   // determine HomeAssistant temp. units (celsius vs. fahrenheit)
   // defaults to celsius
-  var units = 'CELSIUS';
-  if (data.attributes && data.attributes.unit_of_measurement) {
-    var units = (data.attributes.unit_of_measurement === '°F') ? 'FAHRENHEIT' : 'CELSIUS';
-  }
-  return units;
+  return (data.attributes && data.attributes.unit_of_measurement && data.attributes.unit_of_measurement === '°F') ? 'FAHRENHEIT' : 'CELSIUS';
+}
 
 function HomeAssistantClimate(log, data, client) {
-    // device info
+  // device info
 
   this.domain = 'climate';
   this.data = data;
@@ -48,21 +45,23 @@ function HomeAssistantClimate(log, data, client) {
 }
 HomeAssistantClimate.prototype = {
   onEvent: function (oldState, newState) {
-    const list = { 'idle': 0, 'heat': 1, 'cool': 2, 'auto': 3, 'off': 0 }
+    const list = {
+      idle: 0, heat: 1, cool: 2, auto: 3, off: 0
+    };
     this.ThermostatService.getCharacteristic(Characteristic.CurrentTemperature)
-          .setValue(newState.attributes.current_temperature || newState.attributes.temperature, null, 'internal');
+      .setValue(newState.attributes.current_temperature || newState.attributes.temperature, null, 'internal');
     this.ThermostatService.getCharacteristic(Characteristic.TargetTemperature)
-          .setValue(newState.attributes.temperature, null, 'internal');
+      .setValue(newState.attributes.temperature, null, 'internal');
     this.ThermostatService.getCharacteristic(Characteristic.TargetHeatingCoolingState)
-          .setValue(list[newState.state], null, 'internal');
+      .setValue(list[newState.state], null, 'internal');
   },
   getCurrentTemp: function (callback) {
     this.client.fetchState(this.entity_id, function (data) {
       if (data) {
         if (getTempUnits(data) === 'FAHRENHEIT') {
-          callback(null, fahrenheitToCelsius(data.attributes.temperature))
+          callback(null, fahrenheitToCelsius(data.attributes.temperature));
         } else {
-          callback(null, data.attributes.temperature)
+          callback(null, data.attributes.temperature);
         }
       } else {
         callback(communicationError);
@@ -70,12 +69,12 @@ HomeAssistantClimate.prototype = {
     });
   },
   getTargetTemp: function (callback) {
-    this.client.fetchState(this.entity_id, function (data) { 
+    this.client.fetchState(this.entity_id, function (data) {
       if (data) {
         if (getTempUnits(data) === 'FAHRENHEIT') {
-          callback(null, fahrenheitToCelsius(data.attributes.temperature))
+          callback(null, fahrenheitToCelsius(data.attributes.temperature));
         } else {
-          callback(null, data.attributes.temperature)
+          callback(null, data.attributes.temperature);
         }
       } else {
         callback(communicationError);
@@ -177,23 +176,23 @@ HomeAssistantClimate.prototype = {
     var informationService = new Service.AccessoryInformation();
 
     informationService
-          .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-          .setCharacteristic(Characteristic.Model, this.model)
-          .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Model, this.model)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial);
 
     // get our unit var -- default to celsius
     var units = (getTempUnits(this.data) === 'FAHRENHEIT') ? Characteristic.TemperatureDisplayUnits.FAHRENHEIT : Characteristic.TemperatureDisplayUnits.CELSIUS;
 
     this.ThermostatService
-          .getCharacteristic(Characteristic.CurrentTemperature)
-          .on('get', this.getCurrentTemp.bind(this));
+      .getCharacteristic(Characteristic.CurrentTemperature)
+      .on('get', this.getCurrentTemp.bind(this));
 
     // default min/max/step for temperature
     var minTemp = 7.0;
     var maxTemp = 35.0;
     var tempStep = 0.5;
 
-    if (units == Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
+    if (units === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
       if (this.data && this.data.attributes) {
         if (this.data.attributes.min_temp) {
           minTemp = fahrenheitToCelsius(this.data.attributes.min_temp);
@@ -205,30 +204,28 @@ HomeAssistantClimate.prototype = {
           tempStep = this.data.attributes.target_temp_step;
         }
       }
-    } else {
-      if (this.data && this.data.attributes) {
-        if (this.data.attributes.min_temp) {
-          minTemp = this.data.attributes.min_temp;
-        }
-        if (this.data.attributes.max_temp) {
-          maxTemp = this.data.attributes.max_temp;
-        }
-        if (this.data.attributes.target_temp_step) {
-          tempStep = this.data.attributes.target_temp_step;
-        }
+    } else if (this.data && this.data.attributes) {
+      if (this.data.attributes.min_temp) {
+        minTemp = this.data.attributes.min_temp;
+      }
+      if (this.data.attributes.max_temp) {
+        maxTemp = this.data.attributes.max_temp;
+      }
+      if (this.data.attributes.target_temp_step) {
+        tempStep = this.data.attributes.target_temp_step;
       }
     }
 
     this.ThermostatService
-          .getCharacteristic(Characteristic.TargetTemperature)
-          .setProps({ minValue: minTemp, maxValue: maxTemp, minStep: tempStep })
-          .on('get', this.getTargetTemp.bind(this))
-          .on('set', this.setTargetTemp.bind(this));
+      .getCharacteristic(Characteristic.TargetTemperature)
+      .setProps({ minValue: minTemp, maxValue: maxTemp, minStep: tempStep })
+      .on('get', this.getTargetTemp.bind(this))
+      .on('set', this.setTargetTemp.bind(this));
 
     this.ThermostatService
-          .getCharacteristic(Characteristic.TargetHeatingCoolingState)
-          .on('get', this.getTargetHeatingCoolingState.bind(this))
-          .on('set', this.setTargetHeatingCoolingState.bind(this));
+      .getCharacteristic(Characteristic.TargetHeatingCoolingState)
+      .on('get', this.getTargetHeatingCoolingState.bind(this))
+      .on('set', this.setTargetHeatingCoolingState.bind(this));
 
     this.ThermostatService.setCharacteristic(Characteristic.TemperatureDisplayUnits, units);
 
