@@ -32,6 +32,7 @@ Here's a list of the devices that are currently exposed:
 * **Media Players** - exposed as an on/off switch
 * **Remotes** - exposed as an on/off switch
 * **Scenes** - exposed as an on/off switch
+* **Scripts** - exposed as an on/off switch
 * **Sensors** - air quality, carbon dioxide (CO2), humidity, light, temperature sensors
 * **Switches** - on/off
 
@@ -104,6 +105,12 @@ cannot be deleted. Simply add your Home Assistant scene to them and set the
 state you would like them to be when executed. That's most like the ON state.
 The switch will automatically turn off shortly after turning on.
 
+### Script Support
+
+Scripts containing only one service call will function exactly like scenes (see above).
+
+Scripts containing more than one service call will be able to be turned off as well.
+
 ### Sensor Support
 
 Air quality, carbon dioxide (CO2), humidity, light and temperature sensors are currently supported.
@@ -141,7 +148,7 @@ To avoid too much information in your log, just set `logging` to `false` as soon
     "name": "HomeAssistant",
     "host": "http://127.0.0.1:8123",
     "password": "yourapipassword",
-    "supported_types": ["automation", "binary_sensor", "climate", "cover", "device_tracker", "fan", "group", "input_boolean", "light", "lock", "media_player", "remote", "scene", "sensor", "switch"],
+    "supported_types": ["automation", "binary_sensor", "climate", "cover", "device_tracker", "fan", "group", "input_boolean", "light", "lock", "media_player", "remote", "scene", "script", "sensor", "switch"],
     "default_visibility": "hidden",
     "logging": true,
     "verify_ssl": true
