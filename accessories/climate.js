@@ -126,7 +126,7 @@ HomeAssistantClimate.prototype = {
           case 'heat':
             state = Characteristic.TargetHeatingCoolingState.HEAT;
             break;
-          case 'idle':
+          case 'off':
           default:
             state = Characteristic.TargetHeatingCoolingState.OFF;
             break;
@@ -159,7 +159,7 @@ HomeAssistantClimate.prototype = {
         break;
       case Characteristic.TargetHeatingCoolingState.OFF:
       default:
-        mode = 'idle';
+        mode = 'off';
         break;
     }
 
