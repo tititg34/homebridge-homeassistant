@@ -39,8 +39,6 @@ Here's a list of the devices that are currently exposed:
 
 ### Alarm Control Panel Support
 
-Home Assistant does not currently support "Night" arming. For now, selecting "Night" within HomeKit apps will set the system to "Home".
-
 If your alarm control panel is setup to use a code, you must use `homebridge_alarm_code` to specify the code.
 
 ### Binary Sensor Support
