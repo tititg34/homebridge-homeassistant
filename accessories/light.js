@@ -126,6 +126,8 @@ function HomeAssistantLight(log, data, client) {
   if (data.attributes.homebridge_min_mireds) {
     this.minTemp = data.attributes.homebridge_min_mireds;
   }
+
+  this.cachedColor = false;
 }
 
 HomeAssistantLight.prototype = {
@@ -330,50 +332,34 @@ HomeAssistantLight.prototype = {
       return;
     }
 
-    const that = this;
-    const serviceData = {};
-    serviceData.entity_id = this.entity_id;
     this.data.attributes.hue = level;
 
-    const rgb = LightUtil.hsvToRgb(
-      (this.data.attributes.hue || 0) / 360,
-      (this.data.attributes.saturation || 0) / 100,
-      (this.data.attributes.brightness || 0) / 255
-    );
-    if (this.data.attributes.saturation !== undefined) {
-      if (this.is_supported(this.features.XY_COLOR)) {
-        serviceData.xy_color = LightUtil.rgbToCie(rgb.r, rgb.g, rgb.b);
-      } else {
-        serviceData.rgb_color = [rgb.r, rgb.g, rgb.b];
-      }
+    if (this.cachedColor) {
+      this._setColor(callback);
+    } else {
+      this.cachedColor = true;
+      callback();
     }
-
-    this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
-      if (data) {
-        that.log(`Successfully set hue on the '${that.name}' to ${level}`);
-        if (that.is_supported(that.features.XY_COLOR)) {
-          that.log(`Successfully set xy on the '${that.name}' to ${serviceData.xy_color}`);
-        } else {
-          that.log(`Successfully set rgb on the '${that.name}' to ${serviceData.rgb_color}`);
-        }
-        callback();
-      } else {
-        callback(communicationError);
-      }
-    });
   },
   setSaturation(level, callback, context) {
     if (context === 'internal') {
       callback();
       return;
     }
-
-    const that = this;
-    const serviceData = {};
-    serviceData.entity_id = this.entity_id;
-
     this.data.attributes.saturation = level;
 
+    if (this.cachedColor) {
+      this._setColor(callback);
+    } else {
+      this.cachedColor = true;
+      callback();
+    }
+  },
+  _setColor(callback) {
+    const that = this;
+    this.cachedColor = false;
+    const serviceData = {};
+    serviceData.entity_id = this.entity_id;
     const rgb = LightUtil.hsvToRgb(
       (this.data.attributes.hue || 0) / 360,
       (this.data.attributes.saturation || 0) / 100,
@@ -390,7 +376,6 @@ HomeAssistantLight.prototype = {
 
     this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
       if (data) {
-        that.log(`Successfully set saturation on the '${that.name}' to ${level}`);
         if (that.is_supported(that.features.XY_COLOR)) {
           that.log(`Successfully set xy on the '${that.name}' to ${serviceData.xy_color}`);
         } else {
