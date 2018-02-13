@@ -39,11 +39,13 @@ function HomeAssistantLock(log, data, client) {
 
 HomeAssistantLock.prototype = {
   onEvent(oldState, newState) {
-    const lockState = newState.state === 'unlocked' ? 0 : 1;
-    this.lockService.getCharacteristic(Characteristic.LockCurrentState)
-      .setValue(lockState, null, 'internal');
-    this.lockService.getCharacteristic(Characteristic.LockTargetState)
-      .setValue(lockState, null, 'internal');
+    if (newState.state) {
+      const lockState = newState.state === 'unlocked' ? 0 : 1;
+      this.lockService.getCharacteristic(Characteristic.LockCurrentState)
+        .setValue(lockState, null, 'internal');
+      this.lockService.getCharacteristic(Characteristic.LockTargetState)
+        .setValue(lockState, null, 'internal');
+    }
   },
   getLockState(callback) {
     this.client.fetchState(this.entity_id, (data) => {

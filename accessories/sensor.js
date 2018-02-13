@@ -47,19 +47,21 @@ class HomeAssistantSensor {
   }
 
   onEvent(oldState, newState) {
-    if (this.service === Service.CarbonDioxideSensor) {
-      const transformed = this.transformData(newState);
-      this.sensorService.getCharacteristic(this.characteristic)
-        .setValue(transformed, null, 'internal');
+    if (newState.state) {
+      if (this.service === Service.CarbonDioxideSensor) {
+        const transformed = this.transformData(newState);
+        this.sensorService.getCharacteristic(this.characteristic)
+          .setValue(transformed, null, 'internal');
 
-      const abnormal = Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL;
-      const normal = Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL;
-      const detected = (transformed > 1000 ? abnormal : normal);
-      this.sensorService.getCharacteristic(Characteristic.CarbonDioxideDetected)
-        .setValue(detected, null, 'internal');
-    } else {
-      this.sensorService.getCharacteristic(this.characteristic)
-        .setValue(this.transformData(newState), null, 'internal');
+        const abnormal = Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL;
+        const normal = Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL;
+        const detected = (transformed > 1000 ? abnormal : normal);
+        this.sensorService.getCharacteristic(Characteristic.CarbonDioxideDetected)
+          .setValue(detected, null, 'internal');
+      } else {
+        this.sensorService.getCharacteristic(this.characteristic)
+          .setValue(this.transformData(newState), null, 'internal');
+      }
     }
   }
 

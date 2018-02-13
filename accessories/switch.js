@@ -31,8 +31,10 @@ function HomeAssistantSwitch(log, data, client, type) {
 
 HomeAssistantSwitch.prototype = {
   onEvent(oldState, newState) {
-    this.service.getCharacteristic(Characteristic.On)
-      .setValue(newState.state === 'on', null, 'internal');
+    if (newState.state) {
+      this.service.getCharacteristic(Characteristic.On)
+        .setValue(newState.state === 'on', null, 'internal');
+    }
   },
   getPowerState(callback) {
     this.client.fetchState(this.entity_id, (data) => {

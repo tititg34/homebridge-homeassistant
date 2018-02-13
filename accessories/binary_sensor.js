@@ -46,8 +46,10 @@ class HomeAssistantBinarySensor {
   }
 
   onEvent(oldState, newState) {
-    this.sensorService.getCharacteristic(this.characteristic)
-      .setValue(newState.state === 'on' ? this.onValue : this.offValue, null, 'internal');
+    if (newState.state) {
+      this.sensorService.getCharacteristic(this.characteristic)
+        .setValue(newState.state === 'on' ? this.onValue : this.offValue, null, 'internal');
+    }
   }
   identify(callback) {
     this.log(`identifying: ${this.name}`);
