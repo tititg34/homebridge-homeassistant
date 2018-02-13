@@ -30,15 +30,14 @@ function HomeAssistantFan(log, data, client) {
   } else {
     this.serial = data.entity_id;
   }
-  this.client = client;
-  this.log = log;
-
-  var speedList = data.attributes.speed_list;
-  if (speedList) {
+  if (data.attributes.speed_list) {
+    var speedList = data.attributes.speed_list;
     this.maxValue = speedList.length - 1;
   } else {
     this.maxValue = 100;
   }
+  this.client = client;
+  this.log = log;
 }
 
 HomeAssistantFan.prototype = {
@@ -95,27 +94,25 @@ HomeAssistantFan.prototype = {
       if (data) {
         if (data.state === 'off') {
           callback(null, 0);
-        } else {
+        } else if (data.attributes.speed_list) {
           var speedList = data.attributes.speed_list;
-          if (speedList) {
-            if (speedList.length > 2) {
-              var index = speedList.indexOf(data.attributes.speed);
-              callback(null, index);
-            }
-          } else {
-            switch (data.attributes.speed) {
-              case 'low':
-                callback(null, 25);
-                break;
-              case 'medium':
-                callback(null, 50);
-                break;
-              case 'high':
-                callback(null, 100);
-                break;
-              default:
-                callback(null, 0);
-            }
+          if (speedList.length > 2) {
+            var index = speedList.indexOf(data.attributes.speed);
+            callback(null, index);
+          }
+        } else {
+          switch (data.attributes.speed) {
+            case 'low':
+              callback(null, 25);
+              break;
+            case 'medium':
+              callback(null, 50);
+              break;
+            case 'high':
+              callback(null, 100);
+              break;
+            default:
+              callback(null, 0);
           }
         }
       } else {
@@ -147,8 +144,8 @@ HomeAssistantFan.prototype = {
     } else {
       this.client.fetchState(this.entity_id, (data) => {
         if (data) {
-          var speedList = data.attributes.speed_list;
-          if (speedList) {
+          if (data.attributes.speed_list) {
+            var speedList = data.attributes.speed_list;
             for (var index = 0; index < speedList.length - 1; index += 1) {
               if (speed === index) {
                 serviceData.speed = speedList[index];
