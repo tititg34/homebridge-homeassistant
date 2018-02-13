@@ -42,8 +42,10 @@ function HomeAssistantFan(log, data, client) {
 
 HomeAssistantFan.prototype = {
   onEvent(oldState, newState) {
-    this.fanService.getCharacteristic(Characteristic.On)
-      .setValue(newState.state === 'on', null, 'internal');
+    if (newState.state) {
+      this.fanService.getCharacteristic(Characteristic.On)
+        .setValue(newState.state === 'on', null, 'internal');
+    }
   },
   getPowerState(callback) {
     this.client.fetchState(this.entity_id, (data) => {

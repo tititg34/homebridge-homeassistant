@@ -147,38 +147,40 @@ HomeAssistantLight.prototype = {
     return (this.data.attributes.supported_features & feature) > 0;
   },
   onEvent(oldState, newState) {
-    this.lightbulbService.getCharacteristic(Characteristic.On)
-      .setValue(newState.state === 'on', null, 'internal');
-    if (this.is_supported(this.features.BRIGHTNESS)) {
-      const brightness = Math.round(((newState.attributes.brightness || 0) / 255) * 100);
+    if (newState.state) {
+      this.lightbulbService.getCharacteristic(Characteristic.On)
+        .setValue(newState.state === 'on', null, 'internal');
+      if (this.is_supported(this.features.BRIGHTNESS)) {
+        const brightness = Math.round(((newState.attributes.brightness || 0) / 255) * 100);
 
-      this.lightbulbService.getCharacteristic(Characteristic.Brightness)
-        .setValue(brightness, null, 'internal');
+        this.lightbulbService.getCharacteristic(Characteristic.Brightness)
+          .setValue(brightness, null, 'internal');
 
-      this.data.attributes.brightness = newState.attributes.brightness;
-    }
+        this.data.attributes.brightness = newState.attributes.brightness;
+      }
 
-    if (this.is_supported(this.features.RGB_COLOR) &&
-            newState.attributes.rgb_color !== undefined) {
-      const rgbColor = newState.attributes.rgb_color;
-      const hsv = LightUtil.rgbToHsv(rgbColor[0], rgbColor[1], rgbColor[2]);
-      const hue = hsv.h * 360;
-      const saturation = hsv.s * 100;
+      if (this.is_supported(this.features.RGB_COLOR) &&
+              newState.attributes.rgb_color !== undefined) {
+        const rgbColor = newState.attributes.rgb_color;
+        const hsv = LightUtil.rgbToHsv(rgbColor[0], rgbColor[1], rgbColor[2]);
+        const hue = hsv.h * 360;
+        const saturation = hsv.s * 100;
 
-      this.lightbulbService.getCharacteristic(Characteristic.Hue)
-        .setValue(hue, null, 'internal');
-      this.lightbulbService.getCharacteristic(Characteristic.Saturation)
-        .setValue(saturation, null, 'internal');
+        this.lightbulbService.getCharacteristic(Characteristic.Hue)
+          .setValue(hue, null, 'internal');
+        this.lightbulbService.getCharacteristic(Characteristic.Saturation)
+          .setValue(saturation, null, 'internal');
 
-      this.data.attributes.hue = hue;
-      this.data.attributes.saturation = saturation;
-    }
+        this.data.attributes.hue = hue;
+        this.data.attributes.saturation = saturation;
+      }
 
-    if (this.is_supported(this.features.COLOR_TEMP)) {
-      const colorTemperature = Math.round(newState.attributes.color_temp) || this.minTemp;
+      if (this.is_supported(this.features.COLOR_TEMP)) {
+        const colorTemperature = Math.round(newState.attributes.color_temp) || this.minTemp;
 
-      this.lightbulbService.getCharacteristic(Characteristic.ColorTemperature)
-        .setValue(colorTemperature, null, 'internal');
+        this.lightbulbService.getCharacteristic(Characteristic.ColorTemperature)
+          .setValue(colorTemperature, null, 'internal');
+      }
     }
   },
   identify(callback) {

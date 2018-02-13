@@ -85,14 +85,16 @@ function HomeAssistantMediaPlayer(log, data, client) {
 
 HomeAssistantMediaPlayer.prototype = {
   onEvent(oldState, newState) {
-    let powerState;
-    if (this.stateLogicCompareWithOn) {
-      powerState = newState.state === this.onState;
-    } else {
-      powerState = newState.state !== this.offState;
+    if (newState.state) {
+      let powerState;
+      if (this.stateLogicCompareWithOn) {
+        powerState = newState.state === this.onState;
+      } else {
+        powerState = newState.state !== this.offState;
+      }
+      this.switchService.getCharacteristic(Characteristic.On)
+        .setValue(powerState, null, 'internal');
     }
-    this.switchService.getCharacteristic(Characteristic.On)
-      .setValue(powerState, null, 'internal');
   },
   getPowerState(callback) {
     this.log(`fetching power state for: ${this.name}`);

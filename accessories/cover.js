@@ -31,12 +31,14 @@ class HomeAssistantCover {
   }
 
   onEvent(oldState, newState) {
-    const state = this.transformData(newState);
+    if (newState.state) {
+      const state = this.transformData(newState);
 
-    this.service.getCharacteristic(this.stateCharacteristic)
-      .setValue(state, null, 'internal');
-    this.service.getCharacteristic(this.targetCharacteristic)
-      .setValue(state, null, 'internal');
+      this.service.getCharacteristic(this.stateCharacteristic)
+        .setValue(state, null, 'internal');
+      this.service.getCharacteristic(this.targetCharacteristic)
+        .setValue(state, null, 'internal');
+    }
   }
 
   getState(callback) {

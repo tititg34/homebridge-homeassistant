@@ -37,24 +37,26 @@ function HomeAssistantAlarmControlPanel(log, data, client) {
 
 HomeAssistantAlarmControlPanel.prototype = {
   onEvent(oldState, newState) {
-    let alarmState;
-    if (newState.state === 'armed_home') {
-      alarmState = 0;
-    } else if (newState.state === 'armed_away') {
-      alarmState = 1;
-    } else if (newState.state === 'armed_night') {
-      alarmState = 2;
-    } else if (newState.state === 'disarmed') {
-      alarmState = 3;
-    } else if (newState.state === 'triggered') {
-      alarmState = 4;
-    } else {
-      alarmState = 3;
+    if (newState.state) {
+      let alarmState;
+      if (newState.state === 'armed_home') {
+        alarmState = 0;
+      } else if (newState.state === 'armed_away') {
+        alarmState = 1;
+      } else if (newState.state === 'armed_night') {
+        alarmState = 2;
+      } else if (newState.state === 'disarmed') {
+        alarmState = 3;
+      } else if (newState.state === 'triggered') {
+        alarmState = 4;
+      } else {
+        alarmState = 3;
+      }
+      this.alarmService.getCharacteristic(Characteristic.SecuritySystemCurrentState)
+        .setValue(alarmState, null, 'internal');
+      this.alarmService.getCharacteristic(Characteristic.SecuritySystemTargetState)
+        .setValue(alarmState, null, 'internal');
     }
-    this.alarmService.getCharacteristic(Characteristic.SecuritySystemCurrentState)
-      .setValue(alarmState, null, 'internal');
-    this.alarmService.getCharacteristic(Characteristic.SecuritySystemTargetState)
-      .setValue(alarmState, null, 'internal');
   },
   getAlarmState(callback) {
     this.client.fetchState(this.entity_id, (data) => {
