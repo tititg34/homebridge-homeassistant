@@ -45,6 +45,32 @@ HomeAssistantFan.prototype = {
     if (newState.state) {
       this.fanService.getCharacteristic(Characteristic.On)
         .setValue(newState.state === 'on', null, 'internal');
+
+      if (newState.state === 'on') {
+        let speed;
+        if (newState.attributes.speed_list) {
+          var speedList = newState.attributes.speed_list;
+          if (speedList.length > 2) {
+            speed = speedList.indexOf(newState.attributes.speed);
+          }
+        } else {
+          switch (newState.attributes.speed) {
+            case 'low':
+              speed = 25;
+              break;
+            case 'medium':
+              speed = 50;
+              break;
+            case 'high':
+              speed = 100;
+              break;
+            default:
+              speed = 0;
+          }
+        }
+        this.fanService.getCharacteristic(Characteristic.RotationSpeed)
+          .setValue(speed, null, 'internal');
+      }
     }
   },
   getPowerState(callback) {
