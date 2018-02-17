@@ -5,7 +5,9 @@ let Characteristic;
 const url = require('url');
 const request = require('request');
 const EventSource = require('eventsource');
+/* eslint-disable import/no-unresolved */
 const firmware = require('./package.json').version;
+/* eslint-enable import/no-unresolved */
 
 const communicationError = new Error('Can not communicate with Home Assistant.');
 
