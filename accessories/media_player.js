@@ -68,10 +68,10 @@ function HomeAssistantMediaPlayer(log, data, client, firmware) {
     this.onService = 'turn_on';
     this.offService = 'turn_off';
   }
-  if (data.attributes && data.attributes.homebridge_mfg) {
-    this.mfg = String(data.attributes.homebridge_mfg);
+  if (data.attributes && data.attributes.homebridge_manufacturer) {
+    this.manufacturer = String(data.attributes.homebridge_manufacturer);
   } else {
-    this.mfg = 'Home Assistant';
+    this.manufacturer = 'Home Assistant';
   }
   if (data.attributes && data.attributes.homebridge_model) {
     this.model = String(data.attributes.homebridge_model);
@@ -228,7 +228,7 @@ HomeAssistantMediaPlayer.prototype = {
     const informationService = new Service.AccessoryInformation();
 
     informationService
-      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
       .setCharacteristic(Characteristic.Model, this.model)
       .setCharacteristic(Characteristic.SerialNumber, this.serial)
       .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
