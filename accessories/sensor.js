@@ -204,7 +204,7 @@ function HomeAssistantSensorFactory(log, data, client, firmware) {
   }
 
   return new HomeAssistantSensor(
-      log, data, client, service, characteristic, transformData, firmware);
+    log, data, client, service, characteristic, transformData, firmware);
 }
 
 function HomeAssistantSensorPlatform(oService, oCharacteristic, oCommunicationError) {
