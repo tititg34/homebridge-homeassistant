@@ -13,22 +13,23 @@ function getTempUnits(data) {
   return (data.attributes && data.attributes.unit_of_measurement && data.attributes.unit_of_measurement === '°F') ? 'FAHRENHEIT' : 'CELSIUS';
 }
 
-function HomeAssistantClimate(log, data, client) {
+function HomeAssistantClimate(log, data, client, firmware) {
   // device info
 
   this.domain = 'climate';
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   if (data.attributes && data.attributes.friendly_name) {
     this.name = data.attributes.friendly_name;
   } else {
     this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
   }
-  if (data.attributes && data.attributes.homebridge_mfg) {
-    this.mfg = String(data.attributes.homebridge_mfg);
+  if (data.attributes && data.attributes.homebridge_manufacturer) {
+    this.manufacturer = String(data.attributes.homebridge_manufacturer);
   } else {
-    this.mfg = 'Home Assistant';
+    this.manufacturer = 'Home Assistant';
   }
   if (data.attributes && data.attributes.homebridge_model) {
     this.model = String(data.attributes.homebridge_model);
@@ -52,15 +53,17 @@ function HomeAssistantClimate(log, data, client) {
 }
 HomeAssistantClimate.prototype = {
   onEvent: function (oldState, newState) {
-    const list = {
-      idle: 0, heat: 1, cool: 2, auto: 3, off: 0
-    };
-    this.ThermostatService.getCharacteristic(Characteristic.CurrentTemperature)
-      .setValue(newState.attributes.current_temperature || newState.attributes.temperature, null, 'internal');
-    this.ThermostatService.getCharacteristic(Characteristic.TargetTemperature)
-      .setValue(newState.attributes.temperature, null, 'internal');
-    this.ThermostatService.getCharacteristic(Characteristic.TargetHeatingCoolingState)
-      .setValue(list[newState.state], null, 'internal');
+    if (newState.state) {
+      const list = {
+        idle: 0, heat: 1, cool: 2, auto: 3, off: 0
+      };
+      this.ThermostatService.getCharacteristic(Characteristic.CurrentTemperature)
+        .setValue(newState.attributes.current_temperature || newState.attributes.temperature, null, 'internal');
+      this.ThermostatService.getCharacteristic(Characteristic.TargetTemperature)
+        .setValue(newState.attributes.temperature, null, 'internal');
+      this.ThermostatService.getCharacteristic(Characteristic.TargetHeatingCoolingState)
+        .setValue(list[newState.state], null, 'internal');
+    }
   },
   getCurrentTemp: function (callback) {
     this.client.fetchState(this.entity_id, function (data) {
@@ -275,9 +278,10 @@ HomeAssistantClimate.prototype = {
     var informationService = new Service.AccessoryInformation();
 
     informationService
-      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     // get our unit var -- default to celsius
     var units = (getTempUnits(this.data) === 'FAHRENHEIT') ? Characteristic.TemperatureDisplayUnits.FAHRENHEIT : Characteristic.TemperatureDisplayUnits.CELSIUS;

@@ -4,21 +4,22 @@ let Service;
 let Characteristic;
 let communicationError;
 
-function HomeAssistantFan(log, data, client) {
+function HomeAssistantFan(log, data, client, firmware) {
   // device info
   this.domain = 'fan';
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   if (data.attributes && data.attributes.friendly_name) {
     this.name = data.attributes.friendly_name;
   } else {
     this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
   }
-  if (data.attributes && data.attributes.homebridge_mfg) {
-    this.mfg = String(data.attributes.homebridge_mfg);
+  if (data.attributes && data.attributes.homebridge_manufacturer) {
+    this.manufacturer = String(data.attributes.homebridge_manufacturer);
   } else {
-    this.mfg = 'Home Assistant';
+    this.manufacturer = 'Home Assistant';
   }
   if (data.attributes && data.attributes.homebridge_model) {
     this.model = String(data.attributes.homebridge_model);
@@ -42,8 +43,36 @@ function HomeAssistantFan(log, data, client) {
 
 HomeAssistantFan.prototype = {
   onEvent(oldState, newState) {
-    this.fanService.getCharacteristic(Characteristic.On)
-      .setValue(newState.state === 'on', null, 'internal');
+    if (newState.state) {
+      this.fanService.getCharacteristic(Characteristic.On)
+        .setValue(newState.state === 'on', null, 'internal');
+
+      if (newState.state === 'on') {
+        let speed;
+        if (newState.attributes.speed_list) {
+          var speedList = newState.attributes.speed_list;
+          if (speedList.length > 2) {
+            speed = speedList.indexOf(newState.attributes.speed);
+          }
+        } else {
+          switch (newState.attributes.speed) {
+            case 'low':
+              speed = 25;
+              break;
+            case 'medium':
+              speed = 50;
+              break;
+            case 'high':
+              speed = 100;
+              break;
+            default:
+              speed = 0;
+          }
+        }
+        this.fanService.getCharacteristic(Characteristic.RotationSpeed)
+          .setValue(speed, null, 'internal');
+      }
+    }
   },
   getPowerState(callback) {
     this.client.fetchState(this.entity_id, (data) => {
@@ -183,9 +212,10 @@ HomeAssistantFan.prototype = {
     const informationService = new Service.AccessoryInformation();
 
     informationService
-      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     this.fanService
       .getCharacteristic(Characteristic.On)
