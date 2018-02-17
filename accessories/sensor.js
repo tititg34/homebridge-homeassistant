@@ -202,7 +202,6 @@ function HomeAssistantSensorFactory(log, data, client, firmware) {
   } else {
     return null;
   }
-
   return new HomeAssistantSensor(
     log, data, client, service, characteristic, transformData, firmware
   );
