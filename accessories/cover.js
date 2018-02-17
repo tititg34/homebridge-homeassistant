@@ -19,10 +19,10 @@ class HomeAssistantCover {
     } else {
       this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
     }
-    if (data.attributes && data.attributes.homebridge_mfg) {
-      this.mfg = String(data.attributes.homebridge_mfg);
+    if (data.attributes && data.attributes.homebridge_manufacturer) {
+      this.manufacturer = String(data.attributes.homebridge_manufacturer);
     } else {
-      this.mfg = 'Home Assistant';
+      this.manufacturer = 'Home Assistant';
     }
     if (data.attributes && data.attributes.homebridge_serial) {
       this.serial = String(data.attributes.homebridge_serial);
@@ -55,9 +55,9 @@ class HomeAssistantCover {
   getServices() {
     const informationService = new Service.AccessoryInformation();
     informationService
-      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
       .setCharacteristic(Characteristic.Model, this.model)
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
       .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     this.service
