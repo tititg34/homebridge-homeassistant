@@ -4,7 +4,7 @@ let Service;
 let Characteristic;
 let communicationError;
 
-function HomeAssistantMediaPlayer(log, data, client) {
+function HomeAssistantMediaPlayer(log, data, client, firmware) {
   /* eslint-disable no-unused-vars */
   const SUPPORT_PAUSE = 1;
   const SUPPORT_SEEK = 2;
@@ -24,6 +24,7 @@ function HomeAssistantMediaPlayer(log, data, client) {
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   this.supportedFeatures = data.attributes.supported_features;
   this.stateLogicCompareWithOn = true;
 
@@ -229,7 +230,8 @@ HomeAssistantMediaPlayer.prototype = {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     this.switchService
       .getCharacteristic(Characteristic.On)

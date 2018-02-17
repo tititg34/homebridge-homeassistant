@@ -5,11 +5,12 @@ let Characteristic;
 let communicationError;
 
 class HomeAssistantSensor {
-  constructor(log, data, client, service, characteristic, transformData) {
+  constructor(log, data, client, service, characteristic, transformData, firmware) {
     // device info
     this.data = data;
     this.entity_id = data.entity_id;
     this.uuid_base = data.entity_id;
+    this.firmware = firmware;
     if (data.attributes && data.attributes.friendly_name) {
       this.name = data.attributes.friendly_name;
     } else {
@@ -119,7 +120,8 @@ class HomeAssistantSensor {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     this.sensorService
       .getCharacteristic(this.characteristic)
@@ -145,7 +147,7 @@ class HomeAssistantSensor {
   }
 }
 
-function HomeAssistantSensorFactory(log, data, client) {
+function HomeAssistantSensorFactory(log, data, client, firmware) {
   if (!data.attributes) {
     return null;
   }
@@ -201,7 +203,13 @@ function HomeAssistantSensorFactory(log, data, client) {
     return null;
   }
 
-  return new HomeAssistantSensor(log, data, client, service, characteristic, transformData);
+  return new HomeAssistantSensor(
+    log, data, client,
+    service,
+    characteristic,
+    transformData,
+    firmware
+  );
 }
 
 function HomeAssistantSensorPlatform(oService, oCharacteristic, oCommunicationError) {

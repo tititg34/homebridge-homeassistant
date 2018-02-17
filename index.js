@@ -5,6 +5,9 @@ let Characteristic;
 const url = require('url');
 const request = require('request');
 const EventSource = require('eventsource');
+/* eslint-disable import/no-unresolved */
+const firmware = require('./package.json').version;
+/* eslint-enable import/no-unresolved */
 
 const communicationError = new Error('Can not communicate with Home Assistant.');
 
@@ -159,45 +162,45 @@ HomeAssistantPlatform.prototype = {
 
         if (this.defaultVisibility === 'visible' || (this.defaultVisibility === 'hidden' && entity.attributes.homebridge_visible)) {
           if (entityType === 'light') {
-            accessory = new HomeAssistantLight(that.log, entity, that);
+            accessory = new HomeAssistantLight(that.log, entity, that, firmware);
           } else if (entityType === 'switch') {
-            accessory = new HomeAssistantSwitch(that.log, entity, that);
+            accessory = new HomeAssistantSwitch(that.log, entity, that, 'switch', firmware);
           } else if (entityType === 'lock') {
-            accessory = new HomeAssistantLock(that.log, entity, that);
+            accessory = new HomeAssistantLock(that.log, entity, that, firmware);
           } else if (entityType === 'garage_door') {
             that.log.error('Garage_doors are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).');
           } else if (entityType === 'scene') {
-            accessory = new HomeAssistantSwitch(that.log, entity, that, 'scene');
+            accessory = new HomeAssistantSwitch(that.log, entity, that, 'scene', firmware);
           } else if (entityType === 'rollershutter') {
             that.log.error('Rollershutters are no longer supported by homebridge-homeassistant. Please upgrade to a newer version of Home Assistant to continue using this entity (with the new cover component).');
           } else if (entityType === 'input_boolean') {
-            accessory = new HomeAssistantSwitch(that.log, entity, that, 'input_boolean');
+            accessory = new HomeAssistantSwitch(that.log, entity, that, 'input_boolean', firmware);
           } else if (entityType === 'fan') {
-            accessory = new HomeAssistantFan(that.log, entity, that);
+            accessory = new HomeAssistantFan(that.log, entity, that, firmware);
           } else if (entityType === 'cover') {
-            accessory = HomeAssistantCoverFactory(that.log, entity, that);
+            accessory = HomeAssistantCoverFactory(that.log, entity, that, firmware);
           } else if (entityType === 'sensor') {
-            accessory = HomeAssistantSensorFactory(that.log, entity, that);
+            accessory = HomeAssistantSensorFactory(that.log, entity, that, firmware);
           } else if (entityType === 'device_tracker') {
-            accessory = HomeAssistantDeviceTrackerFactory(that.log, entity, that);
+            accessory = HomeAssistantDeviceTrackerFactory(that.log, entity, that, firmware);
           } else if (entityType === 'climate') {
-            accessory = new HomeAssistantClimate(that.log, entity, that);
+            accessory = new HomeAssistantClimate(that.log, entity, that, firmware);
           } else if (entityType === 'media_player' && entity.attributes && entity.attributes.supported_features) {
-            accessory = new HomeAssistantMediaPlayer(that.log, entity, that);
+            accessory = new HomeAssistantMediaPlayer(that.log, entity, that, firmware);
           } else if (entityType === 'binary_sensor' && entity.attributes && entity.attributes.device_class) {
-            accessory = HomeAssistantBinarySensorFactory(that.log, entity, that);
+            accessory = HomeAssistantBinarySensorFactory(that.log, entity, that, firmware);
           } else if (entityType === 'group') {
-            accessory = new HomeAssistantSwitch(that.log, entity, that, 'group');
+            accessory = new HomeAssistantSwitch(that.log, entity, that, 'group', firmware);
           } else if (entityType === 'alarm_control_panel') {
-            accessory = new HomeAssistantAlarmControlPanel(that.log, entity, that);
+            accessory = new HomeAssistantAlarmControlPanel(that.log, entity, that, firmware);
           } else if (entityType === 'remote') {
-            accessory = new HomeAssistantSwitch(that.log, entity, that, 'remote');
+            accessory = new HomeAssistantSwitch(that.log, entity, that, 'remote', firmware);
           } else if (entityType === 'automation') {
-            accessory = new HomeAssistantSwitch(that.log, entity, that, 'automation');
+            accessory = new HomeAssistantSwitch(that.log, entity, that, 'automation', firmware);
           } else if (entityType === 'vacuum') {
-            accessory = new HomeAssistantSwitch(that.log, entity, that, 'vacuum');
+            accessory = new HomeAssistantSwitch(that.log, entity, that, 'vacuum', firmware);
           } else if (entityType === 'script') {
-            accessory = new HomeAssistantSwitch(that.log, entity, that, 'script');
+            accessory = new HomeAssistantSwitch(that.log, entity, that, 'script', firmware);
           }
         }
 

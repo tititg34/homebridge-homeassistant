@@ -5,11 +5,12 @@ var Characteristic;
 var communicationError;
 
 class HomeAssistantDeviceTracker {
-  constructor(log, data, client, service, characteristic, onValue, offValue) {
+  constructor(log, data, client, service, characteristic, onValue, offValue, firmware) {
     // device info
     this.data = data;
     this.entity_id = data.entity_id;
     this.uuid_base = data.entity_id;
+    this.firmware = firmware;
     if (data.attributes && data.attributes.friendly_name) {
       this.name = data.attributes.friendly_name;
     } else {
@@ -103,7 +104,8 @@ class HomeAssistantDeviceTracker {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     if (this.batterySource) {
       this.batteryService = new Service.BatteryService();
@@ -124,7 +126,7 @@ class HomeAssistantDeviceTracker {
   }
 }
 
-function HomeAssistantDeviceTrackerFactory(log, data, client) {
+function HomeAssistantDeviceTrackerFactory(log, data, client, firmware) {
   if (!(data.attributes)) {
     return null;
   }
@@ -133,7 +135,8 @@ function HomeAssistantDeviceTrackerFactory(log, data, client) {
     Service.OccupancySensor,
     Characteristic.OccupancyDetected,
     Characteristic.OccupancyDetected.OCCUPANCY_DETECTED,
-    Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED
+    Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED,
+    firmware
   );
 }
 
