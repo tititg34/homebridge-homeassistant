@@ -13,13 +13,14 @@ function getTempUnits(data) {
   return (data.attributes && data.attributes.unit_of_measurement && data.attributes.unit_of_measurement === '°F') ? 'FAHRENHEIT' : 'CELSIUS';
 }
 
-function HomeAssistantClimate(log, data, client) {
+function HomeAssistantClimate(log, data, client, firmware) {
   // device info
 
   this.domain = 'climate';
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   if (data.attributes && data.attributes.friendly_name) {
     this.name = data.attributes.friendly_name;
   } else {
@@ -279,7 +280,8 @@ HomeAssistantClimate.prototype = {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     // get our unit var -- default to celsius
     var units = (getTempUnits(this.data) === 'FAHRENHEIT') ? Characteristic.TemperatureDisplayUnits.FAHRENHEIT : Characteristic.TemperatureDisplayUnits.CELSIUS;

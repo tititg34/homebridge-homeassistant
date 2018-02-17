@@ -87,12 +87,13 @@ const LightUtil = {
 };
 /* eslint-enable */
 
-function HomeAssistantLight(log, data, client) {
+function HomeAssistantLight(log, data, client, firmware) {
   // device info
   this.domain = 'light';
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   if (data.attributes && data.attributes.friendly_name) {
     this.name = data.attributes.friendly_name;
   } else {
@@ -431,7 +432,8 @@ HomeAssistantLight.prototype = {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     informationService
       .setCharacteristic(Characteristic.Identify)

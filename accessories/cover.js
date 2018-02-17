@@ -5,7 +5,7 @@ let Characteristic;
 let communicationError;
 
 class HomeAssistantCover {
-  constructor(log, data, client) {
+  constructor(log, data, client, firmware) {
     this.client = client;
     this.log = log;
     // device info
@@ -13,6 +13,7 @@ class HomeAssistantCover {
     this.data = data;
     this.entity_id = data.entity_id;
     this.uuid_base = data.entity_id;
+    this.firmware = firmware;
     if (data.attributes && data.attributes.friendly_name) {
       this.name = data.attributes.friendly_name;
     } else {
@@ -56,7 +57,8 @@ class HomeAssistantCover {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.SerialNumber, this.serial)
-      .setCharacteristic(Characteristic.Model, this.model);
+      .setCharacteristic(Characteristic.Model, this.model)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     this.service
       .getCharacteristic(this.stateCharacteristic)
@@ -88,8 +90,8 @@ class HomeAssistantCover {
 }
 
 class HomeAssistantGarageDoor extends HomeAssistantCover {
-  constructor(log, data, client) {
-    super(log, data, client);
+  constructor(log, data, client, firmware) {
+    super(log, data, client, firmware);
     if (data.attributes && data.attributes.homebridge_model) {
       this.model = String(data.attributes.homebridge_model);
     } else {
@@ -115,8 +117,8 @@ class HomeAssistantGarageDoor extends HomeAssistantCover {
 }
 
 class HomeAssistantRollershutter extends HomeAssistantCover {
-  constructor(log, data, client) {
-    super(log, data, client);
+  constructor(log, data, client, firmware) {
+    super(log, data, client, firmware);
     if (data.attributes && data.attributes.homebridge_model) {
       this.model = String(data.attributes.homebridge_model);
     } else {
@@ -174,18 +176,18 @@ class HomeAssistantRollershutterBinary extends HomeAssistantRollershutter {
   }
 }
 
-function HomeAssistantCoverFactory(log, data, client) {
+function HomeAssistantCoverFactory(log, data, client, firmware) {
   if (!data.attributes) {
     return null;
   }
 
   if (data.attributes.homebridge_cover_type === 'garage_door') {
-    return new HomeAssistantGarageDoor(log, data, client);
+    return new HomeAssistantGarageDoor(log, data, client, firmware);
   } else if (data.attributes.homebridge_cover_type === 'rollershutter') {
     if (data.attributes.current_position !== undefined) {
-      return new HomeAssistantRollershutter(log, data, client);
+      return new HomeAssistantRollershutter(log, data, client, firmware);
     }
-    return new HomeAssistantRollershutterBinary(log, data, client);
+    return new HomeAssistantRollershutterBinary(log, data, client, firmware);
   }
   log.error(`'${data.entity_id}' is a cover but does not have a 'homebridge_cover_type' property set. ` +
             'You must set it to either \'rollershutter\' or \'garage_door\' in the customize section ' +

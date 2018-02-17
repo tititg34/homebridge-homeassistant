@@ -4,12 +4,13 @@ let Service;
 let Characteristic;
 let communicationError;
 
-function HomeAssistantSwitch(log, data, client, type) {
+function HomeAssistantSwitch(log, data, client, type, firmware) {
   // device info
-  this.domain = type || 'switch';
+  this.domain = type;
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   if (data.attributes && data.attributes.friendly_name) {
     this.name = data.attributes.friendly_name;
   } else {
@@ -168,7 +169,8 @@ HomeAssistantSwitch.prototype = {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.Model, model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     if (this.domain === 'remote' || this.domain === 'switch' || this.domain === 'input_boolean' || this.domain === 'group' || this.domain === 'automation' || this.domain === 'vacuum' || (this.domain === 'script' && this.data.attributes.can_cancel)) {
       this.service

@@ -4,12 +4,13 @@ let Service;
 let Characteristic;
 let communicationError;
 
-function HomeAssistantAlarmControlPanel(log, data, client) {
+function HomeAssistantAlarmControlPanel(log, data, client, firmware) {
   // device info
   this.domain = 'alarm_control_panel';
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   if (data.attributes && data.attributes.friendly_name) {
     this.name = data.attributes.friendly_name;
   } else {
@@ -157,7 +158,8 @@ HomeAssistantAlarmControlPanel.prototype = {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     this.alarmService
       .getCharacteristic(Characteristic.SecuritySystemCurrentState)

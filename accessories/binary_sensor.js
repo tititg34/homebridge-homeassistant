@@ -9,11 +9,12 @@ function toTitleCase(str) {
 }
 
 class HomeAssistantBinarySensor {
-  constructor(log, data, client, service, characteristic, onValue, offValue) {
+  constructor(log, data, client, service, characteristic, onValue, offValue, firmware) {
     // device info
     this.data = data;
     this.entity_id = data.entity_id;
     this.uuid_base = data.entity_id;
+    this.firmware = firmware;
     if (data.attributes && data.attributes.friendly_name) {
       this.name = data.attributes.friendly_name;
     } else {
@@ -107,7 +108,8 @@ class HomeAssistantBinarySensor {
     informationService
       .setCharacteristic(Characteristic.Manufacturer, this.mfg)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     if (this.batterySource) {
       this.batteryService = new Service.BatteryService();
@@ -128,7 +130,7 @@ class HomeAssistantBinarySensor {
   }
 }
 
-function HomeAssistantBinarySensorFactory(log, data, client) {
+function HomeAssistantBinarySensorFactory(log, data, client, firmware) {
   if (!(data.attributes && data.attributes.device_class)) {
     return null;
   }
@@ -142,7 +144,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
         Service.ContactSensor,
         Characteristic.ContactSensorState,
         Characteristic.ContactSensorState.CONTACT_NOT_DETECTED,
-        Characteristic.ContactSensorState.CONTACT_DETECTED
+        Characteristic.ContactSensorState.CONTACT_DETECTED,
+        firmware
       );
     case 'gas':
       if (!(data.attributes.homebridge_gas_type)) {
@@ -151,7 +154,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
           Service.CarbonMonoxideSensor,
           Characteristic.CarbonMonoxideDetected,
           Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
-          Characteristic.LeakDetected.CO_LEVELS_NORMAL
+          Characteristic.LeakDetected.CO_LEVELS_NORMAL,
+          firmware
         );
       }
       switch (data.attributes.homebridge_gas_type) {
@@ -161,7 +165,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
             Service.CarbonDioxideSensor,
             Characteristic.CarbonDioxideDetected,
             Characteristic.LeakDetected.CO2_LEVELS_ABNORMAL,
-            Characteristic.LeakDetected.CO2_LEVELS_NORMAL
+            Characteristic.LeakDetected.CO2_LEVELS_NORMAL,
+            firmware
           );
         case 'co':
           return new HomeAssistantBinarySensor(
@@ -169,7 +174,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
             Service.CarbonMonoxideSensor,
             Characteristic.CarbonMonoxideDetected,
             Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
-            Characteristic.LeakDetected.CO_LEVELS_NORMAL
+            Characteristic.LeakDetected.CO_LEVELS_NORMAL,
+            firmware
           );
         default:
           return new HomeAssistantBinarySensor(
@@ -177,7 +183,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
             Service.CarbonMonoxideSensor,
             Characteristic.CarbonMonoxideDetected,
             Characteristic.LeakDetected.CO_LEVELS_ABNORMAL,
-            Characteristic.LeakDetected.CO_LEVELS_NORMAL
+            Characteristic.LeakDetected.CO_LEVELS_NORMAL,
+            firmware
           );
       }
     case 'moisture':
@@ -186,7 +193,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
         Service.LeakSensor,
         Characteristic.LeakDetected,
         Characteristic.LeakDetected.LEAK_DETECTED,
-        Characteristic.LeakDetected.LEAK_NOT_DETECTED
+        Characteristic.LeakDetected.LEAK_NOT_DETECTED,
+        firmware
       );
     case 'motion':
       return new HomeAssistantBinarySensor(
@@ -194,7 +202,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
         Service.MotionSensor,
         Characteristic.MotionDetected,
         true,
-        false
+        false,
+        firmware
       );
     case 'occupancy':
       return new HomeAssistantBinarySensor(
@@ -202,7 +211,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
         Service.OccupancySensor,
         Characteristic.OccupancyDetected,
         Characteristic.OccupancyDetected.OCCUPANCY_DETECTED,
-        Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED
+        Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED,
+        firmware
       );
     case 'smoke':
       return new HomeAssistantBinarySensor(
@@ -210,7 +220,8 @@ function HomeAssistantBinarySensorFactory(log, data, client) {
         Service.SmokeSensor,
         Characteristic.SmokeDetected,
         Characteristic.SmokeDetected.SMOKE_DETECTED,
-        Characteristic.SmokeDetected.SMOKE_NOT_DETECTED
+        Characteristic.SmokeDetected.SMOKE_NOT_DETECTED,
+        firmware
       );
     default:
       log.error(`'${data.entity_id}' has a device_class of '${data.attributes.device_class}' which is not supported by ` +
