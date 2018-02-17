@@ -210,12 +210,12 @@ customize:
     homebridge_name: My awesome switch
 ```
 
-Finally, you can (optionally) specify the accessory information by setting `homebridge_mfg`,  `homebridge_model`, and `homebridge_serial` like this:
+Finally, you can (optionally) specify the accessory information by setting `homebridge_manufacturer`,  `homebridge_model`, and `homebridge_serial` like this:
 
 ```yaml
 customize:
   switch.a_switch:
-    homebridge_mfg: Leviton
+    homebridge_manufacturer: Leviton
     homebridge_model: DZMX1-1LZ
     homebridge_serial: 123456789
 ```

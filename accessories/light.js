@@ -87,21 +87,22 @@ const LightUtil = {
 };
 /* eslint-enable */
 
-function HomeAssistantLight(log, data, client) {
+function HomeAssistantLight(log, data, client, firmware) {
   // device info
   this.domain = 'light';
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   if (data.attributes && data.attributes.friendly_name) {
     this.name = data.attributes.friendly_name;
   } else {
     this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
   }
-  if (data.attributes && data.attributes.homebridge_mfg) {
-    this.mfg = String(data.attributes.homebridge_mfg);
+  if (data.attributes && data.attributes.homebridge_manufacturer) {
+    this.manufacturer = String(data.attributes.homebridge_manufacturer);
   } else {
-    this.mfg = 'Home Assistant';
+    this.manufacturer = 'Home Assistant';
   }
   if (data.attributes && data.attributes.homebridge_model) {
     this.model = String(data.attributes.homebridge_model);
@@ -126,6 +127,8 @@ function HomeAssistantLight(log, data, client) {
   if (data.attributes.homebridge_min_mireds) {
     this.minTemp = data.attributes.homebridge_min_mireds;
   }
+
+  this.cachedColor = false;
 }
 
 HomeAssistantLight.prototype = {
@@ -147,38 +150,40 @@ HomeAssistantLight.prototype = {
     return (this.data.attributes.supported_features & feature) > 0;
   },
   onEvent(oldState, newState) {
-    this.lightbulbService.getCharacteristic(Characteristic.On)
-      .setValue(newState.state === 'on', null, 'internal');
-    if (this.is_supported(this.features.BRIGHTNESS)) {
-      const brightness = Math.round(((newState.attributes.brightness || 0) / 255) * 100);
+    if (newState.state) {
+      this.lightbulbService.getCharacteristic(Characteristic.On)
+        .setValue(newState.state === 'on', null, 'internal');
+      if (this.is_supported(this.features.BRIGHTNESS)) {
+        const brightness = Math.round(((newState.attributes.brightness || 0) / 255) * 100);
 
-      this.lightbulbService.getCharacteristic(Characteristic.Brightness)
-        .setValue(brightness, null, 'internal');
+        this.lightbulbService.getCharacteristic(Characteristic.Brightness)
+          .setValue(brightness, null, 'internal');
 
-      this.data.attributes.brightness = newState.attributes.brightness;
-    }
+        this.data.attributes.brightness = newState.attributes.brightness;
+      }
 
-    if (this.is_supported(this.features.RGB_COLOR) &&
-            newState.attributes.rgb_color !== undefined) {
-      const rgbColor = newState.attributes.rgb_color;
-      const hsv = LightUtil.rgbToHsv(rgbColor[0], rgbColor[1], rgbColor[2]);
-      const hue = hsv.h * 360;
-      const saturation = hsv.s * 100;
+      if (this.is_supported(this.features.RGB_COLOR) &&
+              newState.attributes.rgb_color !== undefined) {
+        const rgbColor = newState.attributes.rgb_color;
+        const hsv = LightUtil.rgbToHsv(rgbColor[0], rgbColor[1], rgbColor[2]);
+        const hue = hsv.h * 360;
+        const saturation = hsv.s * 100;
 
-      this.lightbulbService.getCharacteristic(Characteristic.Hue)
-        .setValue(hue, null, 'internal');
-      this.lightbulbService.getCharacteristic(Characteristic.Saturation)
-        .setValue(saturation, null, 'internal');
+        this.lightbulbService.getCharacteristic(Characteristic.Hue)
+          .setValue(hue, null, 'internal');
+        this.lightbulbService.getCharacteristic(Characteristic.Saturation)
+          .setValue(saturation, null, 'internal');
 
-      this.data.attributes.hue = hue;
-      this.data.attributes.saturation = saturation;
-    }
+        this.data.attributes.hue = hue;
+        this.data.attributes.saturation = saturation;
+      }
 
-    if (this.is_supported(this.features.COLOR_TEMP)) {
-      const colorTemperature = Math.round(newState.attributes.color_temp) || this.minTemp;
+      if (this.is_supported(this.features.COLOR_TEMP)) {
+        const colorTemperature = Math.round(newState.attributes.color_temp) || this.minTemp;
 
-      this.lightbulbService.getCharacteristic(Characteristic.ColorTemperature)
-        .setValue(colorTemperature, null, 'internal');
+        this.lightbulbService.getCharacteristic(Characteristic.ColorTemperature)
+          .setValue(colorTemperature, null, 'internal');
+      }
     }
   },
   identify(callback) {
@@ -330,50 +335,34 @@ HomeAssistantLight.prototype = {
       return;
     }
 
-    const that = this;
-    const serviceData = {};
-    serviceData.entity_id = this.entity_id;
     this.data.attributes.hue = level;
 
-    const rgb = LightUtil.hsvToRgb(
-      (this.data.attributes.hue || 0) / 360,
-      (this.data.attributes.saturation || 0) / 100,
-      (this.data.attributes.brightness || 0) / 255
-    );
-    if (this.data.attributes.saturation !== undefined) {
-      if (this.is_supported(this.features.XY_COLOR)) {
-        serviceData.xy_color = LightUtil.rgbToCie(rgb.r, rgb.g, rgb.b);
-      } else {
-        serviceData.rgb_color = [rgb.r, rgb.g, rgb.b];
-      }
+    if (this.cachedColor) {
+      this._setColor(callback);
+    } else {
+      this.cachedColor = true;
+      callback();
     }
-
-    this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
-      if (data) {
-        that.log(`Successfully set hue on the '${that.name}' to ${level}`);
-        if (that.is_supported(that.features.XY_COLOR)) {
-          that.log(`Successfully set xy on the '${that.name}' to ${serviceData.xy_color}`);
-        } else {
-          that.log(`Successfully set rgb on the '${that.name}' to ${serviceData.rgb_color}`);
-        }
-        callback();
-      } else {
-        callback(communicationError);
-      }
-    });
   },
   setSaturation(level, callback, context) {
     if (context === 'internal') {
       callback();
       return;
     }
-
-    const that = this;
-    const serviceData = {};
-    serviceData.entity_id = this.entity_id;
-
     this.data.attributes.saturation = level;
 
+    if (this.cachedColor) {
+      this._setColor(callback);
+    } else {
+      this.cachedColor = true;
+      callback();
+    }
+  },
+  _setColor(callback) {
+    const that = this;
+    this.cachedColor = false;
+    const serviceData = {};
+    serviceData.entity_id = this.entity_id;
     const rgb = LightUtil.hsvToRgb(
       (this.data.attributes.hue || 0) / 360,
       (this.data.attributes.saturation || 0) / 100,
@@ -390,7 +379,6 @@ HomeAssistantLight.prototype = {
 
     this.client.callService(this.domain, 'turn_on', serviceData, (data) => {
       if (data) {
-        that.log(`Successfully set saturation on the '${that.name}' to ${level}`);
         if (that.is_supported(that.features.XY_COLOR)) {
           that.log(`Successfully set xy on the '${that.name}' to ${serviceData.xy_color}`);
         } else {
@@ -427,9 +415,10 @@ HomeAssistantLight.prototype = {
     const informationService = new Service.AccessoryInformation();
 
     informationService
-      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
       .setCharacteristic(Characteristic.Model, this.model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     informationService
       .setCharacteristic(Characteristic.Identify)

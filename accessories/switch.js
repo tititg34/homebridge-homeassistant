@@ -4,21 +4,22 @@ let Service;
 let Characteristic;
 let communicationError;
 
-function HomeAssistantSwitch(log, data, client, type) {
+function HomeAssistantSwitch(log, data, client, type, firmware) {
   // device info
-  this.domain = type || 'switch';
+  this.domain = type;
   this.data = data;
   this.entity_id = data.entity_id;
   this.uuid_base = data.entity_id;
+  this.firmware = firmware;
   if (data.attributes && data.attributes.friendly_name) {
     this.name = data.attributes.friendly_name;
   } else {
     this.name = data.entity_id.split('.').pop().replace(/_/g, ' ');
   }
-  if (data.attributes && data.attributes.homebridge_mfg) {
-    this.mfg = String(data.attributes.homebridge_mfg);
+  if (data.attributes && data.attributes.homebridge_manufacturer) {
+    this.manufacturer = String(data.attributes.homebridge_manufacturer);
   } else {
-    this.mfg = 'Home Assistant';
+    this.manufacturer = 'Home Assistant';
   }
   if (data.attributes && data.attributes.homebridge_serial) {
     this.serial = String(data.attributes.homebridge_serial);
@@ -31,8 +32,10 @@ function HomeAssistantSwitch(log, data, client, type) {
 
 HomeAssistantSwitch.prototype = {
   onEvent(oldState, newState) {
-    this.service.getCharacteristic(Characteristic.On)
-      .setValue(newState.state === 'on', null, 'internal');
+    if (newState.state) {
+      this.service.getCharacteristic(Characteristic.On)
+        .setValue(newState.state === 'on', null, 'internal');
+    }
   },
   getPowerState(callback) {
     this.client.fetchState(this.entity_id, (data) => {
@@ -164,9 +167,10 @@ HomeAssistantSwitch.prototype = {
     const informationService = new Service.AccessoryInformation();
 
     informationService
-      .setCharacteristic(Characteristic.Manufacturer, this.mfg)
+      .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
       .setCharacteristic(Characteristic.Model, model)
-      .setCharacteristic(Characteristic.SerialNumber, this.serial);
+      .setCharacteristic(Characteristic.SerialNumber, this.serial)
+      .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
     if (this.domain === 'remote' || this.domain === 'switch' || this.domain === 'input_boolean' || this.domain === 'group' || this.domain === 'automation' || this.domain === 'vacuum' || (this.domain === 'script' && this.data.attributes.can_cancel)) {
       this.service
