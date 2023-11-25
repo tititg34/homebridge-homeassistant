@@ -132,11 +132,13 @@ You can make a switch appear as an outlet to Homebridge by setting `homebridge_s
 
 After installing and setting up [Homebridge](https://github.com/nfarina/homebridge), you can install the Home Assistant plugin with:
 
-    npm install -g homebridge-homeassistant
+    npm i homebridge-homeassistant-mbmccormick
+
+After installing the Home Assistant plugin and update the files with my modifications with:
+
+    cd node_modules/homebridge-homeassistant-mbmccormick/ && 
 
 Once installed, update your Homebridge's `config.json`.
-
-You can run `sudo npm upgrade -g homebridge-homeassistant` to upgrade your installation at any time.
 
 ## Configuration
 
