@@ -85,7 +85,7 @@ HomeAssistantPlatform.prototype = {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        'x-ha-access': this.password,
+        'Authorization': this.password,
       },
       rejectUnauthorized: this.verify_ssl,
     };
