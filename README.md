@@ -3,7 +3,7 @@ Fork home-assistant/homebridge-homeassistant
 # Home Assistant for Homebridge
 
 Control your accessories from [Home Assistant](http://home-assistant.io) with
-Google Home Free and Locally. Simply with this plugins and Homebridge Google Smart Home plugins
+Google Home Free and Locally. Simply with this HomeBridge plugin and the Homebridge Google Smart Home plugin
 
 Control your accessories from [Home Assistant](http://home-assistant.io) with
 Siri and HomeKit. Set it up and poof, all of your supported accessories will be
