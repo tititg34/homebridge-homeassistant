@@ -136,7 +136,7 @@ After installing and setting up [Homebridge](https://github.com/nfarina/homebrid
 
 After installing the Home Assistant plugin and update the files with my modifications with:
 
-    cd node_modules/homebridge-homeassistant-mbmccormick/ && 
+    git clone https://github.com/tititg34/homebridge-homeassistant.git /var/lib/homebridge/node_modules/homebridge-homeassistant-mbmccormick 
 
 Once installed, update your Homebridge's `config.json`.
 
